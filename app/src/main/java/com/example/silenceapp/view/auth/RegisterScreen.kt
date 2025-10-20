@@ -13,26 +13,29 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.silenceapp.ui.theme.primaryColor
-import com.example.silenceapp.ui.theme.secondaryColor
 import com.example.silenceapp.R
 import com.example.silenceapp.ui.theme.errorColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
+import com.example.silenceapp.ui.theme.primaryColor
+import com.example.silenceapp.ui.theme.secondaryColor
 import com.example.silenceapp.viewmodel.UserViewModel
 
-
 @Composable
-fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
+fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null)  }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(50.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(40.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -51,7 +54,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
         Spacer(Modifier.height(20.dp))
 
-        Text("Login",
+        Text("Registro",
             style = MaterialTheme.typography.titleLarge,
             color = onBackgroundColor
         )
@@ -59,11 +62,29 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
         Spacer(Modifier.height(20.dp))
 
         OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Teléfono") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text(
-                "Correo",
-            )},
+            label = { Text("Correo") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -102,6 +123,17 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
         Spacer(Modifier.height(10.dp))
 
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Repetir Contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(Modifier.height(10.dp))
+
         if (message != null) {
             Text(
                 text = message!!,
@@ -112,26 +144,19 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
         Spacer(Modifier.height(20.dp))
 
-        Button(
-            colors = ButtonDefaults.buttonColors(
-                containerColor = primaryColor
-            ),
-            onClick = {
-                if (email.isEmpty() || password.isEmpty()){
-                    message = "Todos los campos son obligatorios"
-                }else{
-                    viewModel.loginUser(email, password) { success ->
-                        message = if (success) "Inicio exitoso" else "Credenciales inválidas"
-                        if (success) navController.navigate("home") }
+        Button(onClick = {
+            if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                message = "Todos los campos son obligatorios"
+            } else if (password != confirmPassword){
+                message = "Las contraseñas no coinciden"
+            }else{
+                viewModel.registerUser(name, email, password, phone) { success ->
+                    message = if (success) "Usuario registrado" else "El correo ya está en uso"
+                    if (success) navController.popBackStack()
                 }
-
             }
-        ) {
-            Text(
-                "Iniciar sesión",
-                color = onBackgroundColor
-
-            )
+        }) {
+            Text("Registrarse")
         }
 
         Spacer(Modifier.height(10.dp))
@@ -140,30 +165,19 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "¿No tienes cuenta?",
+                text = "¿Ya tienes cuenta?",
                 color = onBackgroundColor,
                 style = MaterialTheme.typography.bodyMedium
             )
             TextButton(
-                onClick = { navController.navigate("register") },
+                onClick = { navController.navigate("login") },
                 contentPadding = PaddingValues(4.dp)) {
                 Text(
-                    text = "Regístrate",
+                    text = "Inicia sesión",
                     color = secondaryColor,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-        }
-
-        TextButton(
-            onClick = { navController.navigate("forgot_password") }) {
-            Text(
-                text = "¿Olvidaste tu contraseña?",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    textDecoration = TextDecoration.Underline
-                ),
-                color = onBackgroundColor
-            )
         }
     }
 }
