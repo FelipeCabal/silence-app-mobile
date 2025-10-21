@@ -7,14 +7,17 @@ import androidx.compose.ui.graphics.Color
 val primaryColor: Color
     @Composable get() = MaterialTheme.colorScheme.primary
 
-val onPrimaryColor: Color
-    @Composable get() = MaterialTheme.colorScheme.onPrimary
-
 val secondaryColor: Color
     @Composable get() = MaterialTheme.colorScheme.secondary
 
 val backgroundColor: Color
     @Composable get() = MaterialTheme.colorScheme.background
 
+val onBackgroundColor: Color
+    @Composable get() = MaterialTheme.colorScheme.onBackground
+
 val surfaceColor: Color
     @Composable get() = MaterialTheme.colorScheme.surface
+
+val errorColor: Color
+    @Composable get() = MaterialTheme.colorScheme.error
