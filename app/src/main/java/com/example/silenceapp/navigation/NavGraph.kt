@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
+import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.UserViewModel
 
 
@@ -25,6 +26,9 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("register") {
             RegisterScreen(navController, userViewModel)
+        }
+        composable("edit-profile") {
+            EditProfileScreen(navController, userViewModel)
         }
     }
 }
