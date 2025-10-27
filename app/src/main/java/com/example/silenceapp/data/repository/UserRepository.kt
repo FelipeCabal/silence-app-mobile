@@ -15,4 +15,13 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun loginUser(email: String, password: String): UserEntity? {
         return userDao.login(email, password)
     }
+
+    suspend fun updateUserProfile(user: UserEntity): Boolean {
+        userDao.updateUser(user)
+        return true
+    }
+
+    suspend fun getUserByEmail(email: String): UserEntity? {
+        return userDao.getUserByEmail(email)
+    }
 }
