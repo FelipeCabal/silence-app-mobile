@@ -8,6 +8,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.silenceapp.navigation.NavGraph
 import com.example.silenceapp.ui.theme.SilenceAppTheme
 import com.example.silenceapp.ui.theme.backgroundColor
+import com.example.silenceapp.view.postFeed.FeedScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
