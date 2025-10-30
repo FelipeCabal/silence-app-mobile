@@ -8,6 +8,7 @@ import androidx.room.Room
 import com.example.silenceapp.data.local.AppDatabase
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.UserEntity
+import com.example.silenceapp.data.remote.client.ApiClient
 import com.example.silenceapp.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ import kotlinx.coroutines.withContext
 class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userDao = DatabaseProvider.getDatabase(application).userDao()
-
+    private val api = ApiClient
     private val repository = UserRepository(userDao)
 
     fun registerUser(name: String, email: String, password: String, phoneNumber: String, onResult: (Boolean) -> Unit) {
