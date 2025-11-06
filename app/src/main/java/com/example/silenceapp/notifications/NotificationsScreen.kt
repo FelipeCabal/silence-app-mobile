@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,7 +62,7 @@ fun NotificationsScreen() {
     var notifications by remember { mutableStateOf(sampleNotifications) }
 
     Surface(
-        color = Color(0xFF121212),
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
@@ -89,7 +88,7 @@ fun NotificationsScreen() {
 
 @Composable
 fun NotificationItem(notification: Notification, onClick: () -> Unit) {
-    val backgroundColor = if (notification.isRead) Color(0xFF424242) else Color(0xFF303030)
+    val backgroundColor = if (notification.isRead) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     Surface(
         color = backgroundColor,
         modifier = Modifier
@@ -114,12 +113,12 @@ fun NotificationItem(notification: Notification, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${notification.user} ${notification.action}",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Text(
                 text = notification.time,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.bodySmall
             )
         }
