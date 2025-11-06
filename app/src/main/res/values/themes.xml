@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.SilenceApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SilenceApp" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.SilenceApp.Main</item>
+    </style>
+
+    <style name="Theme.SilenceApp.Main" parent="Theme.Material3.DayNight.NoActionBar" />
 </resources>

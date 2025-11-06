@@ -1,15 +1,92 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ============================
+# Android / Kotlin / Compose
+# ============================
+
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
 local.properties
+*.iml
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/gradle.xml
+.idea/**/dictionaries
+.idea/**/libraries
+.idea/caches
+.idea/modules.xml
+.idea/assetWizardSettings.xml
+.idea/navEditor.xml
+.idea/compiler.xml
+
+# Android Studio files
+captures/
+.navigation/
+*.apk
+*.ap_
+*.aab
+output.json
+
+# Keystores (⚠️ No subas tus claves firmadas)
+*.jks
+*.keystore
+key.properties
+
+# IntelliJ / JetBrains specific
+out/
+
+# Gradle cache
+.gradle/
+**/build/
+
+# Kotlin specific
+*.class
+*.kotlin_module
+
+# Jetpack Compose Previews / Generated
+*.preview.cache/
+compose-metrics/
+compose-reports/
+
+# Log / temp files
+*.log
+*.tmp
+*.temp
+*.swp
+
+# Mac / Windows system files
+.DS_Store
+Thumbs.db
+
+# Android NDK
+obj/
+
+# Misc
+*.lock
+*.bak
+
+# ============================
+# Optional sections
+# ============================
+
+# If using Firebase / Google Services
+google-services.json
+GoogleService-Info.plist
+
+# If using environment variables (.env files)
+.env
+.env.*
+
+# If using unit tests coverage
+coverage/
+*.ec
+
+# If using Kotlin Symbol Processing (KSP)
+ksp/
+
+# If using Proguard / R8
+proguard-rules.pro~
