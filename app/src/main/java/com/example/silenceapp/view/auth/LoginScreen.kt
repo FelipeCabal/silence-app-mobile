@@ -122,7 +122,7 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
                 }else{
                     viewModel.loginUser(email, password) { success ->
                         message = if (success) "Inicio exitoso" else "Credenciales inválidas"
-                        if (success) navController.navigate("home") }
+                        if (success) navController.navigate("add-post") }
                 }
 
             }
