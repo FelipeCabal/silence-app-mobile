@@ -13,6 +13,7 @@ val DarkGray = Color(0xFF1F1F1F)
 val DimGray = Color(0xFF404040)
 val White = Color(0xFFFFFFFF)
 val MintWhite = Color(0xFFFBFFF8)
+val Red = Color(0xFFFF0000)
 
 
 
