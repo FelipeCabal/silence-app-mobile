@@ -156,17 +156,18 @@ fun NotificationItem(notification: Notification) {
                     Button(
                         onClick = {  },
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
-                    ) {
-                        Text(text = "Rechazar", color = Color.White)
-                    }
-                    Button(
-                        onClick = {  },
-                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(text = "Aceptar", color = MaterialTheme.colorScheme.onPrimary)
                     }
+                    Button(
+                        onClick = {  },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                    ) {
+                        Text(text = "Rechazar", color = Color.White)
+                    }
+
                 }
             }
         }
