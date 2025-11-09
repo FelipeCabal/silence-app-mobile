@@ -17,21 +17,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import coil.compose.rememberAsyncImagePainter
-import com.example.silenceapp.data.model.Post
+import com.example.silenceapp.data.local.entity.Post
+import com.example.silenceapp.ui.theme.PaleMint
+import com.example.silenceapp.ui.theme.backgroundColor
+import com.example.silenceapp.ui.theme.onBackgroundColor
+import com.example.silenceapp.ui.theme.primaryColor
+import com.example.silenceapp.ui.theme.secondaryColor
 
 @Composable
-fun PostCard(post: Post) {
+fun PostCard(post: Post, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 18.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = backgroundColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -50,16 +56,30 @@ fun PostCard(post: Post) {
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFD0FDD7))
+                        .background(
+                            color = PaleMint
+                        )
                         .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = post.userName.first().uppercase(),
-                        color = Color.Black,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if(!post.user.profileImage.isNullOrEmpty()){
+                        SubcomposeAsyncImage(
+                            model = post.user.profileImage,
+                            contentDescription = "Foto de perfil de ${post.user.name}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(CircleShape)
+                        ) {
+                            SubcomposeAsyncImageContent()
+                        }
+                    }else {
+                        Text(
+                            text = post.user.name.first().uppercase(),
+                            color = Color.Black,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -67,15 +87,14 @@ fun PostCard(post: Post) {
                 // Nombre y tiempo
                 Column {
                     Text(
-                        text = post.userName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        text = post.user.name,
+                        color = onBackgroundColor,
+                        style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
-                        text = "Hace 14 horas",
-                        fontSize = 12.sp,
-                        color = Color.Gray
+                        text = post.createdAt.toString(),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
@@ -83,17 +102,16 @@ fun PostCard(post: Post) {
             Spacer(modifier = Modifier.height(12.dp))
 
             // Texto del post
-            post.content?.let{
+            post.description?.let{
                 Text(
                     text = it,
-                    fontSize = 15.sp,
-                    color = Color.Black,
-                    lineHeight = 20.sp
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = onBackgroundColor,
                 )
             }
 
             // Imagen
-            post.imagenUrl?.let { url ->
+            post.imagen?.let { url ->
                 Spacer(modifier = Modifier.height(12.dp))
                 Image(
                     painter = rememberAsyncImagePainter(url),
@@ -117,20 +135,22 @@ fun PostCard(post: Post) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFFD0FDD7))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(
+                            color = primaryColor
+                        )
+                        .padding(horizontal = 16.dp, vertical =6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Favorite,
                         contentDescription = "likes",
-                        tint = Color(0xFF64C27B),
+                        tint = secondaryColor,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = post.likes.toString(),
-                        color = Color.Black,
-                        fontSize = 14.sp,
+                        text = post.cantlikes.toString(),
+                        color = backgroundColor,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
@@ -148,20 +168,22 @@ fun PostCard(post: Post) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
+                        .background(
+                            color = backgroundColor
+                        )
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.FavoriteBorder,
                         contentDescription = "Me gusta",
-                        tint = Color(0xFF404040),
+                        tint = onBackgroundColor,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "Me gusta",
-                        color = Color(0xFF404040),
-                        fontSize = 16.sp
+                        color = onBackgroundColor,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
 
@@ -171,20 +193,22 @@ fun PostCard(post: Post) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
+                        .background(
+                            color = backgroundColor
+                        )
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ChatBubbleOutline,
                         contentDescription = "Comentar",
-                        tint = Color(0xFF404040),
+                        tint = onBackgroundColor,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "Comentar",
-                        color = Color(0xFF404040),
-                        fontSize = 16.sp
+                        color = onBackgroundColor,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }

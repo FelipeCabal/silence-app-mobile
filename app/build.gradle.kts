@@ -62,6 +62,8 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.ui)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.runtime.livedata)
     kapt("androidx.room:room-compiler:2.6.1") // 🔥 Importante para generar el código
 
     // --- Corrutinas ---

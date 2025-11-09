@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
-import com.example.silenceapp.view.postFeed.FeedScreen
+import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.viewmodel.UserViewModel
 
 
@@ -28,7 +28,8 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             RegisterScreen(navController, userViewModel)
         }
         composable("home") {
-            FeedScreen()
+            TestingViews()
         }
+
     }
 }
