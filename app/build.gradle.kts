@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.activity.compose)
 
+
     // --- Navegación Compose ---
     implementation("androidx.navigation:navigation-compose:2.8.0")
 
@@ -64,7 +65,9 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.firebase.crashlytics.buildtools)
     kapt("androidx.room:room-compiler:2.6.1") // 🔥 Importante para generar el código
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // --- Corrutinas ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")

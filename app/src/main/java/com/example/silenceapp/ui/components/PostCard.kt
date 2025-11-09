@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.compose.rememberAsyncImagePainter
@@ -30,7 +29,7 @@ import com.example.silenceapp.ui.theme.primaryColor
 import com.example.silenceapp.ui.theme.secondaryColor
 
 @Composable
-fun PostCard(post: Post, navController: NavController) {
+fun PostCard(post: Post) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
