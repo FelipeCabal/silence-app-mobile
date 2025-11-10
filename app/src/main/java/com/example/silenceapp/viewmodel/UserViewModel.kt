@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.silenceapp.data.local.AppDatabase
+import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.UserEntity
 import com.example.silenceapp.data.repository.UserRepository
 import kotlinx.coroutines.launch
@@ -14,13 +15,9 @@ import kotlinx.coroutines.withContext
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = Room.databaseBuilder(
-        application,
-        AppDatabase::class.java,
-        "silence_db"
-    ).build()
+    private val userDao = DatabaseProvider.getDatabase(application).userDao()
 
-    private val repository = UserRepository(db.userDao())
+    private val repository = UserRepository(userDao)
 
     fun registerUser(name: String, email: String, password: String, phoneNumber: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
@@ -37,6 +34,24 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 repository.loginUser(email, password)
             }
             onResult(user != null)
+        }
+    }
+
+    fun updateUserProfile(user: UserEntity, onResult: (Boolean) -> Unit){
+        viewModelScope.launch {
+            val success = withContext(Dispatchers.IO){
+                repository.updateUserProfile(user)
+            }
+            onResult(success)
+        }
+    }
+
+    fun getUserByEmail(email: String, onResult: (UserEntity?) -> Unit){
+        viewModelScope.launch {
+            val user = withContext(Dispatchers.IO){
+                repository.getUserByEmail(email)
+            }
+            onResult(user)
         }
     }
 }
