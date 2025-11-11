@@ -20,6 +20,7 @@ fun TestingViews(){
     )
     val posts = listOf(
         Post(1, user = user[1], description =  "¿Pero por qué somos tan pobres?"),
+        Post(2, user = user[0], description = "Que no lo vea Roronoa", imagen = "https://i.ytimg.com/vi/aac9iYHwwpc/maxresdefault.jpg")
     )
     val comments = listOf(
         Comment(2, usuario = user[0], postId = 1, comentario = "Es por tu comidaaa!!")

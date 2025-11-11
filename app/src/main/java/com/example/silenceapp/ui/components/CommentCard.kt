@@ -35,7 +35,7 @@ fun CommentCard(comment: Comment){
     ){
         if(!comment.usuario.name.isNullOrEmpty()){
             Image(
-                painter = rememberAsyncImagePainter(comment.usuario.profileImage),
+                painter = rememberAsyncImagePainter(comment.usuario.imageUrl),
                 contentDescription = "Foto de perfil de ${comment.usuario.name}",
                 modifier = Modifier
                     .height(50.dp)
