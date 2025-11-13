@@ -3,18 +3,29 @@ package com.example.silenceapp.view.posts
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.ui.components.PostCard
 import com.example.silenceapp.viewmodel.PostViewModel
 
 @Composable
 fun PostScreen(viewModel: PostViewModel = viewModel()){
-    val postsState = viewModel.posts.observeAsState(emptyList())
+    var postsState by remember { mutableStateOf<List<Post>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getPosts { posts ->
+            postsState = posts
+        }
+    }
 
     LazyColumn {
-        items(postsState.value) { post ->
-                PostCard(post = post)
-            }
+        items(postsState){post ->
+            PostCard(post = post)
+        }
     }
 }

@@ -4,8 +4,6 @@ package com.example.silenceapp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
-import com.example.silenceapp.data.local.AppDatabase
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.UserEntity
 import com.example.silenceapp.data.repository.UserRepository
