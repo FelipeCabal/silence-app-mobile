@@ -1,15 +1,20 @@
 package com.example.silenceapp.view.post
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
@@ -32,8 +37,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -44,15 +49,19 @@ import com.example.silenceapp.ui.theme.primaryColor
 
 
 @Composable
-fun CreatePostScreen(navController: NavController){
+fun CreatePostScreen(
+    navController: NavController
+                     ){
     var message by remember { mutableStateOf("") }
-    var isFocused by remember { mutableStateOf(false) } // 👈 estado del foco
+    var isFocused by remember { mutableStateOf(false)}
+
 
     Column (
-        modifier = Modifier.fillMaxSize().padding(10.dp),
+        modifier = Modifier.fillMaxSize().padding(8.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ){
+        Spacer(Modifier.height(6.dp))
         Row (
             modifier = Modifier,
             verticalAlignment = Alignment.CenterVertically,
@@ -66,14 +75,15 @@ fun CreatePostScreen(navController: NavController){
             )
             Text(
                 "Crear Publicación",
-                color = onBackgroundColor
+                color = onBackgroundColor,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
         Divider(color = Color.Gray,
             thickness = 1.dp,
-            modifier = Modifier.padding(top = 8.dp))
+            modifier = Modifier.padding(vertical = 12.dp))
         Row (
-            modifier = Modifier.padding(top = 10.dp),
+            modifier = Modifier.padding(vertical = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -87,7 +97,8 @@ fun CreatePostScreen(navController: NavController){
             )
             Text(
                 "Leopoldo",
-                color = onBackgroundColor
+                color = onBackgroundColor,
+                style = MaterialTheme.typography.titleSmall
             )
         }
         Box(
@@ -108,14 +119,15 @@ fun CreatePostScreen(navController: NavController){
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState -> isFocused = focusState.isFocused },
-                textStyle = TextStyle(color = onBackgroundColor),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = onBackgroundColor),
                 cursorBrush = SolidColor(onBackgroundColor)
             )
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Image,
@@ -134,10 +146,11 @@ fun CreatePostScreen(navController: NavController){
                 .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
 
+
         ){
             Button(
                 onClick = {},
-                modifier = Modifier.padding(2.dp)
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text("PUBLICAR")
             }
