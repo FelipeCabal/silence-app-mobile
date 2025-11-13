@@ -117,13 +117,13 @@ fun PostCard(post: Post) {
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(500.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .height(500.dp),
+                        //.clip(RoundedCornerShape(8.dp)),
                    contentScale = ContentScale.FillHeight
                 )
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Contador de likes
             Row(
