@@ -37,6 +37,9 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
 }
 
 dependencies {
@@ -49,6 +52,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.paging:paging-runtime-ktx:3.1.1")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.paging:paging-compose:3.3.0")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

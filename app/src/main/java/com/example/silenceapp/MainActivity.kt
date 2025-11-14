@@ -1,51 +1,34 @@
 package com.example.silenceapp
 
-import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import com.example.silenceapp.ui.FeedViewModel
+import com.example.silenceapp.ui.components.NavigationGraph
+import com.example.silenceapp.ui.components.TopBar
+import com.example.silenceapp.ui.components.BottomNavigationBar
 import com.example.silenceapp.ui.theme.SilenceAppTheme
-import com.example.silenceapp.ui.theme.backgroundColor
-import com.example.silenceapp.ui.theme.primaryColor
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            SilenceAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize(), containerColor = backgroundColor) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding),
-                    )
+            val darkTheme = isSystemInDarkTheme()
+            SilenceAppTheme(darkTheme = true) {
+                val navController = rememberNavController()
+                val vm: FeedViewModel = viewModel()
+
+                Scaffold(
+                    topBar = { TopBar() },
+                    bottomBar = { BottomNavigationBar(navController) }
+                ) { innerPadding ->
+                    NavigationGraph(navController = navController, innerPadding = innerPadding, vm = vm)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SilenceAppTheme {
-        Greeting("Android")
     }
 }
