@@ -9,6 +9,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.post.CreatePostScreen
+import com.example.silenceapp.view.testingView.TestingViews
+import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.UserViewModel
 
 
@@ -29,6 +31,13 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable ("add-post"){
             CreatePostScreen(navController)
+        }
+        composable("home") {
+            TestingViews()
+        }
+
+        composable("edit-profile") {
+            EditProfileScreen(navController, userViewModel)
         }
     }
 }

@@ -17,9 +17,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             SilenceAppTheme {
-                Surface (color = backgroundColor){
+               Surface (color = backgroundColor){
                     NavGraph()
                 }
+
             }
         }
     }

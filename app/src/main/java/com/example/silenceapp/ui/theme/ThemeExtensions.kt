@@ -1,5 +1,6 @@
 package com.example.silenceapp.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -21,3 +22,17 @@ val surfaceColor: Color
 
 val errorColor: Color
     @Composable get() = MaterialTheme.colorScheme.error
+
+
+val postBackgroundColor: Color
+    @Composable get() = if (isSystemInDarkTheme()) {
+        DimGray
+    } else {
+        lightGray
+    }
+val backgroundInteraction: Color
+    @Composable get() = if (isSystemInDarkTheme()){
+        PaleMint.copy(0.6f)
+    } else {
+        secondaryColor
+    }

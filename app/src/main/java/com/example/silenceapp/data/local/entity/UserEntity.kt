@@ -9,5 +9,8 @@ data class UserEntity(
     val name: String,
     val email: String,
     val password: String,
-    val phoneNumber: String
+    val phoneNumber: String,
+    val imageUrl: String? = null,
+    val country: String? = null,
+    val description: String? = null
 )

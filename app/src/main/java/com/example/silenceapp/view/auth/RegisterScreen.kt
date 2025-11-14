@@ -152,7 +152,7 @@ fun RegisterScreen(navController: NavController, viewModel: UserViewModel) {
             }else{
                 viewModel.registerUser(name, email, password, phone) { success ->
                     message = if (success) "Usuario registrado" else "El correo ya está en uso"
-                    if (success) navController.popBackStack()
+                    if (success) navController.navigate("home")
                 }
             }
         }) {
