@@ -2,6 +2,7 @@ package com.example.silenceapp.data.remote.client
 
 import com.example.silenceapp.BuildConfig
 import com.example.silenceapp.data.remote.service.AuthService
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,6 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
     private const val BASE_URL = BuildConfig.BASE_URL
+    private const val TAG = "ApiClient"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -25,4 +27,8 @@ object ApiClient {
         .build()
 
     val authService: AuthService = retrofit.create(AuthService::class.java)
+
+    init {
+        Log.d(TAG, "Using BASE_URL: $BASE_URL")
+    }
 }

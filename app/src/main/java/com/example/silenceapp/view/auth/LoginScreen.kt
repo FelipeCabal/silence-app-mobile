@@ -16,83 +16,96 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.silenceapp.ui.theme.primaryColor
-import com.example.silenceapp.ui.theme.secondaryColor
 import com.example.silenceapp.R
 import com.example.silenceapp.ui.theme.errorColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
+import com.example.silenceapp.ui.theme.primaryColor
+import com.example.silenceapp.ui.theme.secondaryColor
 import com.example.silenceapp.viewmodel.UserViewModel
 
 
 @Composable
-fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
+fun LoginScreen(
+    navController: NavController,
+    viewModel: UserViewModel
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<String?>(null)  }
+    var message by remember { mutableStateOf<String?>(null) }
+
+    // Escuchar login desde el ViewModel
+    val authSuccess by viewModel.authSuccess.collectAsState()
+
+    // Si es exitoso → navegar
+    LaunchedEffect(authSuccess) {
+        if (authSuccess) {
+            navController.navigate("edit-profile") {
+                popUpTo("login") { inclusive = true }
+            }
+            // Consumir el evento para evitar re-navegación al volver
+            viewModel.clearAuthSuccess()
+        }
+    }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(50.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(50.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        // LOGO
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo de la app",
-            modifier = Modifier
-                .size(150.dp),
+            modifier = Modifier.size(150.dp),
             contentScale = ContentScale.Fit
         )
 
-        Text("Silence App",
+        Text(
+            "Silence App",
             style = MaterialTheme.typography.headlineLarge,
             color = primaryColor
         )
 
         Spacer(Modifier.height(20.dp))
 
-        Text("Login",
+        Text(
+            "Login",
             style = MaterialTheme.typography.titleLarge,
             color = onBackgroundColor
         )
 
         Spacer(Modifier.height(20.dp))
 
+        // EMAIL
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text(
-                "Correo",
-            )},
+            label = { Text("Correo") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
 
         Spacer(Modifier.height(10.dp))
 
+        // PASSWORD
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
-            visualTransformation = if (passwordVisible)
-                VisualTransformation.None
-            else
-                PasswordVisualTransformation(),
+            visualTransformation =
+                if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Filled.Visibility
-                else
-                    Icons.Filled.VisibilityOff
-
-                IconButton(onClick = {
-                    passwordVisible = !passwordVisible },
-                    modifier = Modifier.size(20.dp)
-                ) {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector = image,
-                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                        modifier = Modifier.size(18.dp)
-
+                        imageVector = if (passwordVisible)
+                            Icons.Filled.Visibility
+                        else
+                            Icons.Filled.VisibilityOff,
+                        contentDescription = null
                     )
                 }
             },
@@ -112,53 +125,56 @@ fun LoginScreen(navController: NavController, viewModel: UserViewModel) {
 
         Spacer(Modifier.height(20.dp))
 
+        // BOTÓN LOGIN
         Button(
             colors = ButtonDefaults.buttonColors(
                 containerColor = primaryColor
             ),
             onClick = {
-                if (email.isEmpty() || password.isEmpty()){
+                if (email.isEmpty() || password.isEmpty()) {
                     message = "Todos los campos son obligatorios"
-                }else{
-                    viewModel.loginUser(email, password) { success ->
-                        message = if (success) "Inicio exitoso" else "Credenciales inválidas"
-                        if (success) navController.navigate("home") }
+                } else {
+                    message = null
+                    viewModel.loginUser(email, password) // ✔ sin callback
                 }
-
             }
         ) {
             Text(
                 "Iniciar sesión",
                 color = onBackgroundColor
-
             )
         }
 
         Spacer(Modifier.height(10.dp))
+
+        // NAVEGAR A REGISTRO
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "¿No tienes cuenta?",
+                "¿No tienes cuenta?",
                 color = onBackgroundColor,
                 style = MaterialTheme.typography.bodyMedium
             )
             TextButton(
                 onClick = { navController.navigate("register") },
-                contentPadding = PaddingValues(4.dp)) {
+                contentPadding = PaddingValues(4.dp)
+            ) {
                 Text(
-                    text = "Regístrate",
+                    "Regístrate",
                     color = secondaryColor,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
+        // OLVIDASTE CONTRASEÑA
         TextButton(
-            onClick = { navController.navigate("forgot_password") }) {
+            onClick = { navController.navigate("forgot_password") }
+        ) {
             Text(
-                text = "¿Olvidaste tu contraseña?",
+                "¿Olvidaste tu contraseña?",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     textDecoration = TextDecoration.Underline
                 ),

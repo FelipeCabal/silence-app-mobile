@@ -1,8 +1,10 @@
 package com.example.silenceapp.data.remote.dto
 
 data class RegisterRequest(
-    val name: String,
+    val nombre: String,
     val email: String,
     val password: String,
-    val phone: String
+    val sexo: String,
+    val fechaNto: String,
+    val pais: String
 )

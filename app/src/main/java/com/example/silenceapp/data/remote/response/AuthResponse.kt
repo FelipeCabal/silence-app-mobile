@@ -1,10 +1,10 @@
 package com.example.silenceapp.data.remote.response
 
+import com.google.gson.annotations.SerializedName
+
 data class AuthResponse(
-    val success: Boolean,
-    val message: String?,
-    val token: String?,
-    val user: UserResponse?
+    @SerializedName("access_token")
+    val access_token: String
 )
 
 data class UserResponse(

@@ -10,8 +10,8 @@ import retrofit2.Response
 interface AuthService {
 
     @POST("auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
+    suspend fun login(@Body request: LoginRequest): AuthResponse
 
     @POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
+    suspend fun register(@Body request: RegisterRequest): AuthResponse
 }

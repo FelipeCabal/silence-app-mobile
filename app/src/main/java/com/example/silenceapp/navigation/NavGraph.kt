@@ -10,6 +10,7 @@ import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.UserViewModel
+import com.example.silenceapp.view.home.HomeScreen
 
 
 @Composable
@@ -29,6 +30,9 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("edit-profile") {
             EditProfileScreen(navController, userViewModel)
+        }
+        composable("home") {
+            HomeScreen()
         }
     }
 }

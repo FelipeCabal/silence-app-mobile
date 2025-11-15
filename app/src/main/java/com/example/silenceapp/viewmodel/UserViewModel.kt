@@ -5,6 +5,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
+import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.local.AppDatabase
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.UserEntity
@@ -12,31 +13,54 @@ import com.example.silenceapp.data.remote.client.ApiClient
 import com.example.silenceapp.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userDao = DatabaseProvider.getDatabase(application).userDao()
-    private val api = ApiClient
-    private val repository = UserRepository(userDao)
+    private val api = ApiClient.authService
+    private val store = AuthDataStore(application)
 
-    fun registerUser(name: String, email: String, password: String, phoneNumber: String, onResult: (Boolean) -> Unit) {
+    private val repository = UserRepository(userDao, api, store)
+
+    private val _authSuccess = MutableStateFlow(false)
+    val authSuccess = _authSuccess.asStateFlow()
+
+    fun loginUser(email: String, password: String) {
         viewModelScope.launch {
-            val success = withContext(Dispatchers.IO) {
-                repository.registerUser(UserEntity(name = name, email = email, password = password, phoneNumber = phoneNumber))
+            try {
+                val success = repository.loginUser(email, password)
+                _authSuccess.value = success
+            } catch (e: Exception) {
+                _authSuccess.value = false
             }
-            onResult(success)
         }
     }
 
-    fun loginUser(email: String, password: String, onResult: (Boolean) -> Unit) {
+    fun clearAuthSuccess() {
+        _authSuccess.value = false
+    }
+
+    fun registerUser(
+        nombre: String,
+        email: String,
+        password: String,
+        sexo: String,
+        fechaNto: String,
+        pais: String
+    ) {
         viewModelScope.launch {
-            val user = withContext(Dispatchers.IO) {
-                repository.loginUser(email, password)
+            try {
+                val success = repository.registerUser(nombre, email, password, sexo, fechaNto, pais)
+                _authSuccess.value = success
+            } catch (e: Exception) {
+                _authSuccess.value = false
             }
-            onResult(user != null)
         }
     }
+
 
     fun updateUserProfile(user: UserEntity, onResult: (Boolean) -> Unit){
         viewModelScope.launch {
