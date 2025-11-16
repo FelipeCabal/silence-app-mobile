@@ -12,11 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.silenceapp.ui.theme.backgroundColor
-import com.example.silenceapp.ui.components.TopBar
-import com.example.silenceapp.ui.components.BottomNavigationBar
-import com.example.silenceapp.ui.components.NavigationGraph
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,16 +47,3 @@ fun GreetingPreview() {
     }
 }
 
-@Composable
-fun NavBar() {
-    SilenceAppTheme(darkTheme = true) {
-        val navController = rememberNavController()
-        Scaffold(
-            //val vm: FeedViewModel = viewModel()
-            topBar = { TopBar() },
-            bottomBar = { BottomNavigationBar(navController) }
-        ) { innerPadding ->
-            NavigationGraph(navController = navController, innerPadding = innerPadding )//,vm = vm)
-        }
-    }
-}
