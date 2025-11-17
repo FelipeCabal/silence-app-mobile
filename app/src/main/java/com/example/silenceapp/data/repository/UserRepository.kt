@@ -3,45 +3,37 @@ package com.example.silenceapp.data.repository
 import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.local.dao.UserDao
 import com.example.silenceapp.data.local.entity.UserEntity
-import com.example.silenceapp.data.remote.dto.LoginRequest
-import com.example.silenceapp.data.remote.dto.RegisterRequest
-import com.example.silenceapp.data.remote.response.AuthResponse
-import com.example.silenceapp.data.remote.service.AuthService
-import retrofit2.Response
+import com.example.silenceapp.data.remote.dto.UpdateProfileRequest
+import com.example.silenceapp.data.remote.service.UserService
+import kotlinx.coroutines.flow.first
 
-class UserRepository(
+class UserRepository (
     private val userDao: UserDao,
-    private val api: AuthService,
+    private val api: UserService,
     private val store: AuthDataStore
-
-) {
-
-    suspend fun loginUser(email: String, password: String): Boolean {
-        val response = api.login(LoginRequest(email, password))
-        store.saveToken(response.access_token)
-        return true
-    }
-
-    suspend fun registerUser(nombre: String, email: String, password: String, sexo: String, fechaNto: String, pais: String): Boolean {
-        val request = RegisterRequest(
-            nombre = nombre,
-            email = email,
-            password = password,
-            sexo = sexo,
-            fechaNto = fechaNto,
-            pais = pais
-        )
-
-        val response = api.register(request)
-
-        store.saveToken(response.access_token)
-
-        return true
-    }
+){
 
     suspend fun updateUserProfile(user: UserEntity): Boolean {
-        userDao.updateUser(user)
+        val token = store.getToken().first()
+        val userRequest = UpdateProfileRequest(
+            nombre = user.nombre,
+            //email = user.email,
+            //fechaNto = user.fechaNto,
+            //sexo = user.sexo,
+            pais = user.pais
+        )
+        try {
+            api.update("Bearer $token", user.remoteId, userRequest)
+            userDao.updateUser(user)
+        }catch (e: Exception){
+
+        }
+
         return true
+    }
+
+    suspend fun insertUser(user: UserEntity) {
+        userDao.insertUser(user)
     }
 
     suspend fun getUserByEmail(email: String): UserEntity? {

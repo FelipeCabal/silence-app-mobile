@@ -23,9 +23,7 @@ import com.example.silenceapp.ui.theme.errorColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.primaryColor
 import com.example.silenceapp.ui.theme.secondaryColor
-import com.example.silenceapp.viewmodel.UserViewModel
-import kotlinx.coroutines.launch
-import java.time.LocalDate
+import com.example.silenceapp.viewmodel.AuthViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -33,7 +31,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun RegisterScreen(
     navController: NavController,
-    viewModel: UserViewModel
+    viewModel: AuthViewModel
 ) {
     var nombre by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }

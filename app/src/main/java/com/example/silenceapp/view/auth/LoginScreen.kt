@@ -21,13 +21,13 @@ import com.example.silenceapp.ui.theme.errorColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.primaryColor
 import com.example.silenceapp.ui.theme.secondaryColor
-import com.example.silenceapp.viewmodel.UserViewModel
+import com.example.silenceapp.viewmodel.AuthViewModel
 
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: UserViewModel
+    viewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -43,7 +43,6 @@ fun LoginScreen(
             navController.navigate("edit-profile") {
                 popUpTo("login") { inclusive = true }
             }
-            // Consumir el evento para evitar re-navegación al volver
             viewModel.clearAuthSuccess()
         }
     }
@@ -135,7 +134,7 @@ fun LoginScreen(
                     message = "Todos los campos son obligatorios"
                 } else {
                     message = null
-                    viewModel.loginUser(email, password) // ✔ sin callback
+                    viewModel.loginUser(email, password)
                 }
             }
         ) {

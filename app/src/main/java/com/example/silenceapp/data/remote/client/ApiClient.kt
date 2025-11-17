@@ -3,6 +3,7 @@ package com.example.silenceapp.data.remote.client
 import com.example.silenceapp.BuildConfig
 import com.example.silenceapp.data.remote.service.AuthService
 import android.util.Log
+import com.example.silenceapp.data.remote.service.UserService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -27,6 +28,7 @@ object ApiClient {
         .build()
 
     val authService: AuthService = retrofit.create(AuthService::class.java)
+    val userService: UserService = retrofit.create(UserService::class.java)
 
     init {
         Log.d(TAG, "Using BASE_URL: $BASE_URL")
