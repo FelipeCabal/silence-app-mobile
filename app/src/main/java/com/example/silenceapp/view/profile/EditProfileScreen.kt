@@ -1,55 +1,102 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.example.silenceapp.view.profile
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import com.example.silenceapp.viewmodel.UserViewModel
+import com.example.silenceapp.viewmodel.AuthViewModel
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.example.silenceapp.R
 import com.example.silenceapp.data.local.entity.UserEntity
+import com.example.silenceapp.data.remote.response.ProfileResponse
+import com.example.silenceapp.util.toShortDate
+import com.example.silenceapp.viewmodel.UserViewModel
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
+fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel){
 
-    // si quiere acceder a esta vista debe colocar aqui el correo de su usuario de pruebas
-    val userEmail = "felipe@gmail.com"
-
-    var user by remember { mutableStateOf<UserEntity?>(null) }
-
-    var isEditingName by remember { mutableStateOf(false) }
-    var isEditingDescription by remember { mutableStateOf(false) }
-    var isEditingPhone by remember { mutableStateOf(false) }
+    var profile by remember { mutableStateOf<ProfileResponse?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.getUserByEmail(userEmail) { fetchedUser ->
-            user = fetchedUser
+        authViewModel.getProfile { p ->
+            profile = p
+        }
+    }
+    LaunchedEffect(Unit) {
+        authViewModel.loadToken { token ->
+            Log.d("TOKEN", token)
         }
     }
 
-    if (user == null) {
+    var isEditingName by remember { mutableStateOf(false) }
+    var isEditingEmail by remember { mutableStateOf(false) }
+    var isEditingSexo by remember { mutableStateOf(false) }
+    var isEditingPais by remember { mutableStateOf(false) }
+    var isEditingFechaNto by remember { mutableStateOf(false) }
+
+    var expandedSexo by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis()
+    )
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (profile == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    var name by remember { mutableStateOf(user!!.name) }
-    var description by remember { mutableStateOf(user!!.description ?: "") }
-    var phone by remember { mutableStateOf(user!!.phoneNumber) }
+    var name by remember { mutableStateOf(profile!!.nombre) }
+    var email by remember { mutableStateOf(profile!!.email) }
+    var sexo by remember { mutableStateOf(profile!!.sexo) }
+    var fechaNto by remember { mutableStateOf(profile!!.fechaNto) }
+    var pais by remember { mutableStateOf(profile!!.pais) }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val millis = datePickerState.selectedDateMillis
+                        runCatching {
+                            if (millis != null) {
+                                val date = java.time.Instant
+                                    .ofEpochMilli(millis)
+                                    .atZone(ZoneId.systemDefault())
+                                    .toLocalDate()
+                                fechaNto = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            }
+                        }.onFailure {
+                            // En caso de error, evita crash y cierra el diálogo
+                            fechaNto = ""
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -65,7 +112,7 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Box(
+        /*Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
@@ -84,7 +131,7 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
+*/
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -117,22 +164,22 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Descripción", style = MaterialTheme.typography.bodyMedium)
-            IconButton(onClick = { isEditingDescription = !isEditingDescription }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit description")
+            Text("Correo", style = MaterialTheme.typography.bodyMedium)
+            IconButton(onClick = { isEditingEmail = !isEditingEmail }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar correo")
             }
         }
 
-        if (isEditingDescription) {
+        if (isEditingEmail) {
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
+                value = email,
+                onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3
             )
         } else {
             Text(
-                text = description,
+                text = email,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start
             )
@@ -145,22 +192,114 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Telefono", style = MaterialTheme.typography.bodyMedium)
-            IconButton(onClick = { isEditingPhone = !isEditingPhone }) {
-                Icon(Icons.Default.Edit, contentDescription = "Editar telefono")
+            Text("Pais", style = MaterialTheme.typography.bodyMedium)
+            IconButton(onClick = { isEditingPais = !isEditingPais }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar Pais")
             }
         }
 
-        if (isEditingPhone) {
+        if (isEditingPais) {
             OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
+                value = pais,
+                onValueChange = { pais = it },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3
             )
         } else {
             Text(
-                text = phone,
+                text = pais,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Start
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Sexo", style = MaterialTheme.typography.bodyMedium)
+            IconButton(onClick = { isEditingSexo = !isEditingSexo }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar Sexo")
+            }
+        }
+
+        if (isEditingSexo) {
+            ExposedDropdownMenuBox(
+                expanded = expandedSexo,
+                onExpandedChange = { expandedSexo = !expandedSexo }
+            ) {
+                OutlinedTextField(
+                    value = sexo,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Sexo") },
+                    modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedSexo,
+                    onDismissRequest = { expandedSexo = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Masculino") },
+                        onClick = {
+                            sexo = "Masculino"
+                            expandedSexo = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Femenino") },
+                        onClick = {
+                            sexo = "Femenino"
+                            expandedSexo = false
+                        }
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = sexo,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Start
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Fecha de Nacimiento", style = MaterialTheme.typography.bodyMedium)
+            IconButton(onClick = { isEditingFechaNto = !isEditingFechaNto }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar Fecha de Nacimiento")
+            }
+        }
+
+        if (isEditingFechaNto) {
+            OutlinedTextField(
+                value = fechaNto,
+                onValueChange = {},
+                label = { Text("Fecha de nacimiento") },
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(
+                            Icons.Filled.CalendarMonth,
+                            contentDescription = null
+                        )
+                    }
+                },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            Text(
+                text = fechaNto.toShortDate(),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Start
             )
@@ -170,15 +309,22 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
 
         Button(
             onClick = {
-                val updatedUser = user!!.copy(
-                    name = name,
-                    description = description
+                val p = profile!!
+                val updatedProfile = UserEntity(
+                    remoteId = p.id,
+                    nombre = name,
+                    email = email,
+                    fechaNto = fechaNto,
+                    sexo = sexo,
+                    pais = pais
                 )
-
-                viewModel.updateUserProfile(updatedUser) { success ->
+                userViewModel.updateUserProfile(updatedProfile) { success ->
                     if (success) {
                         isEditingName = false
-                        isEditingDescription = false
+                        isEditingEmail = false
+                        isEditingSexo = false
+                        isEditingPais = false
+                        isEditingFechaNto = false
                         // podrías mostrar un snackbar o volver atrás
                     }
                 }
@@ -188,6 +334,13 @@ fun EditProfileScreen(navController: NavController, viewModel: UserViewModel){
                 .height(50.dp)
         ) {
             Text("Guardar")
+        }
+
+        Button(onClick = {
+            authViewModel.logout()
+            navController.navigate("login")
+        }) {
+            Text("Logout")
         }
     }
 }

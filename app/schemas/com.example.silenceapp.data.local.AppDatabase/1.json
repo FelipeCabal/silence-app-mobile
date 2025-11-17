@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "86ec3ad649a8bcf7451167373a15e9c3",
+    "identityHash": "783500e350736356b100e9cc25fbbaf2",
     "entities": [
       {
         "tableName": "users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `password` TEXT NOT NULL, `phoneNumber` TEXT NOT NULL, `imageUrl` TEXT, `country` TEXT, `description` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `email` TEXT NOT NULL, `sexo` TEXT NOT NULL, `fechaNto` TEXT NOT NULL, `pais` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,8 +15,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "name",
-            "columnName": "name",
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -27,34 +33,22 @@
             "notNull": true
           },
           {
-            "fieldPath": "password",
-            "columnName": "password",
+            "fieldPath": "sexo",
+            "columnName": "sexo",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "phoneNumber",
-            "columnName": "phoneNumber",
+            "fieldPath": "fechaNto",
+            "columnName": "fechaNto",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "imageUrl",
-            "columnName": "imageUrl",
+            "fieldPath": "pais",
+            "columnName": "pais",
             "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "country",
-            "columnName": "country",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "description",
-            "columnName": "description",
-            "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -70,7 +64,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '86ec3ad649a8bcf7451167373a15e9c3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '783500e350736356b100e9cc25fbbaf2')"
     ]
   }
 }
