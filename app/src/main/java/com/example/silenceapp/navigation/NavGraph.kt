@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
+import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.view.home.HomeScreen
@@ -69,6 +70,10 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                 RegisterScreen(navController, authViewModel)
             }
         }
+        composable("home") {
+            TestingViews()
+        }
+
         composable("edit-profile") {
             if (isAuthenticated != true) {
                 LaunchedEffect(Unit) {
