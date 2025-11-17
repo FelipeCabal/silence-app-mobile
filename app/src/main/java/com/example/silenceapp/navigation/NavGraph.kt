@@ -20,7 +20,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import com.example.silenceapp.viewmodel.UserViewModel
-
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.Scaffold
+import com.example.silenceapp.ui.components.TopBar
+import com.example.silenceapp.ui.components.BottomNavigationBar
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
 
 @Composable
 fun NavGraph(navController: NavHostController = rememberNavController()) {
@@ -39,63 +44,80 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 
     //Debe cambiar esto cuando se implemente la homepage
     val homescreen = "edit-profile"
-
     val start = if (isAuthenticated == true) homescreen else "login"
 
-    NavHost(
-        navController = navController,
-        startDestination = start
-    ) {
-        composable("login") {
-            if (isAuthenticated == true) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(homescreen) {
-                        popUpTo("login") { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            } else {
-                LoginScreen(navController, authViewModel)
-            }
-        }
-        composable("register") {
-            if (isAuthenticated == true) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(homescreen) {
-                        popUpTo("register") { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            } else {
-                RegisterScreen(navController, authViewModel)
-            }
-        }
-        composable("home") {
-            TestingViews()
-        }
+    // Obtener la ruta actual correctamente
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
 
-        composable("edit-profile") {
-            if (isAuthenticated != true) {
-                LaunchedEffect(Unit) {
-                    navController.navigate("login") {
-                        popUpTo("edit-profile") { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            } else {
-                EditProfileScreen(navController, authViewModel, userViewModel)
-            }
+    // Ocultar barras en login y register
+    val showBars = currentRoute !in listOf("login", "register")
+
+    Scaffold(
+        topBar = {
+            if (showBars) TopBar()
+        },
+        bottomBar = {
+            if (showBars) BottomNavigationBar(navController)
         }
-        composable("home") {
-            if (isAuthenticated != true) {
-                LaunchedEffect(Unit) {
-                    navController.navigate("login") {
-                        popUpTo("home") { inclusive = true }
-                        launchSingleTop = true
+    )
+    { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("login") {
+                if (isAuthenticated == true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(homescreen) {
+                            popUpTo("login") { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
+                } else {
+                    LoginScreen(navController, authViewModel)
                 }
-            } else {
-                HomeScreen()
+            }
+            composable("register") {
+                if (isAuthenticated == true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(homescreen) {
+                            popUpTo("register") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    RegisterScreen(navController, authViewModel)
+                }
+            }
+            composable("home") {
+                TestingViews()
+            }
+
+            composable("edit-profile") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("edit-profile") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    EditProfileScreen(navController, authViewModel, userViewModel)
+                }
+            }
+            composable("home") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    HomeScreen()
+                }
             }
         }
     }

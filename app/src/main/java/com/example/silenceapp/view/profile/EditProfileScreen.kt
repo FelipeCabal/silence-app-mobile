@@ -316,7 +316,8 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                     email = email,
                     fechaNto = fechaNto,
                     sexo = sexo,
-                    pais = pais
+                    pais = pais,
+                    imageUrl =  ""
                 )
                 userViewModel.updateUserProfile(updatedProfile) { success ->
                     if (success) {

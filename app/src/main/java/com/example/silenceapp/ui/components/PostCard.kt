@@ -64,7 +64,7 @@ fun PostCard(post: Post) {
                     if(!post.user.imageUrl.isNullOrEmpty()){
                         SubcomposeAsyncImage(
                             model = post.user.imageUrl,
-                            contentDescription = "Foto de perfil de ${post.user.name}",
+                            contentDescription = "Foto de perfil de ${post.user.nombre}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .matchParentSize()
@@ -74,7 +74,7 @@ fun PostCard(post: Post) {
                         }
                     }else {
                         Text(
-                            text = post.user.name.first().uppercase(),
+                            text = post.user.nombre.first().uppercase(),
                             color = Color.Black,
                             style = MaterialTheme.typography.headlineMedium
                         )
@@ -86,7 +86,7 @@ fun PostCard(post: Post) {
                 // Nombre y tiempo
                 Column {
                     Text(
-                        text = post.user.name,
+                        text = post.user.nombre,
                         color = onBackgroundColor,
                         style = MaterialTheme.typography.labelMedium,
                     )

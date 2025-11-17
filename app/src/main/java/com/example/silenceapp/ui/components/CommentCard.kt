@@ -33,10 +33,10 @@ fun CommentCard(comment: Comment){
             .fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ){
-        if(!comment.usuario.name.isNullOrEmpty()){
+        if(!comment.usuario.nombre.isNullOrEmpty()){
             Image(
                 painter = rememberAsyncImagePainter(comment.usuario.imageUrl),
-                contentDescription = "Foto de perfil de ${comment.usuario.name}",
+                contentDescription = "Foto de perfil de ${comment.usuario.nombre}",
                 modifier = Modifier
                     .height(50.dp)
                     .clip(CircleShape),
@@ -44,7 +44,7 @@ fun CommentCard(comment: Comment){
             )
         } else {
             Text(
-                text = comment.usuario.name.first().uppercase(),
+                text = comment.usuario.nombre.first().uppercase(),
                 color = Color.Black,
                 style = MaterialTheme.typography.headlineMedium
             )
@@ -62,7 +62,7 @@ fun CommentCard(comment: Comment){
                 .padding(12.dp),
         ){
             Text(
-                text = comment.usuario.name,
+                text = comment.usuario.nombre,
                 style = MaterialTheme.typography.bodyMedium,
                 color = DarkGray
             )

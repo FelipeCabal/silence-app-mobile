@@ -14,9 +14,8 @@ import com.example.silenceapp.ui.components.PostCard
 @Composable
 fun TestingViews(){
     val user = listOf(
-        UserEntity(1, "Sanji", "user@correo.com", "123","1234560", "https://i.pinimg.com/736x/f3/af/98/f3af98f4fd136039a5775b53e76b272a.jpg" ),
-        UserEntity(2, "Luffy D. Monkey", "user@correo.com", "123","1234560",)
-
+        UserEntity(1, "Sanji", "user@correo.com", "123","1234560", "", "","https://i.pinimg.com/736x/f3/af/98/f3af98f4fd136039a5775b53e76b272a.jpg"),
+        UserEntity(2, "Luffy D. Monkey", "user@correo.com", "123","1234560","", "", "")
     )
     val posts = listOf(
         Post(1, user = user[1], description =  "¿Pero por qué somos tan pobres?"),
