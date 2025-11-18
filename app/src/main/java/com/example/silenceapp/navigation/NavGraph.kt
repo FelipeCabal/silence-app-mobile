@@ -51,14 +51,15 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     // Ocultar barras en login y register
-    val showBars = currentRoute !in listOf("login", "register")
+    val showBar = currentRoute !in listOf("login", "register")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile")
 
     Scaffold(
         topBar = {
-            if (showBars) TopBar()
+            if (showBarTop) TopBar()
         },
         bottomBar = {
-            if (showBars) BottomNavigationBar(navController)
+            if (showBar) BottomNavigationBar(navController)
         }
     )
     { innerPadding ->
