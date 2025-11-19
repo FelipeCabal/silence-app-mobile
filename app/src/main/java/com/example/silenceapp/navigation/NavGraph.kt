@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.testingView.TestingViews
@@ -25,6 +24,7 @@ import com.example.silenceapp.ui.components.TopBar
 import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
+import com.example.silenceapp.view.home.HomeScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -42,7 +42,7 @@ fun NavGraph(navController: NavHostController) {
 
     //Debe cambiar esto cuando se implemente la homepage
     val homescreen = "edit-profile"
-//    val start = if (isAuthenticated == true) homescreen else "login"
+    val start = if (isAuthenticated == true) homescreen else "login"
 
     // Obtener la ruta actual correctamente
     val navBackStackEntry = navController.currentBackStackEntryAsState()
@@ -63,7 +63,7 @@ fun NavGraph(navController: NavHostController) {
     { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = start,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("login") {
@@ -106,18 +106,18 @@ fun NavGraph(navController: NavHostController) {
                     EditProfileScreen(navController, authViewModel, userViewModel)
                 }
             }
-//            composable("home") {
-//                if (isAuthenticated != true) {
-//                    LaunchedEffect(Unit) {
-//                        navController.navigate("login") {
-//                            popUpTo("home") { inclusive = true }
-//                            launchSingleTop = true
-//                        }
-//                    }
-//                } else {
-//                    HomeScreen()
-//                }
-//            }
+            composable("home") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    HomeScreen()
+                }
+            }
         }
     }
 }
