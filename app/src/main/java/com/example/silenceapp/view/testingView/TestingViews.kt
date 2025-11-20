@@ -30,11 +30,11 @@ fun TestingViews(){
         modifier = Modifier.fillMaxSize()
     ){
         items(posts){
-            post ->
+                post ->
             PostCard(post)
         }
         items(comments){
-            comment ->
+                comment ->
             CommentCard(comment)
         }
     }

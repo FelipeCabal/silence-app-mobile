@@ -118,8 +118,8 @@ fun PostCard(post: Post) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(500.dp),
-                        //.clip(RoundedCornerShape(8.dp)),
-                   contentScale = ContentScale.FillHeight
+                    //.clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.FillHeight
                 )
             }
 
