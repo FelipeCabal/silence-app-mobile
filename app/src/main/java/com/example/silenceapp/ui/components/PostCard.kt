@@ -61,9 +61,15 @@ fun PostCard(post: Post) {
                         .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    if(!post.user.imageUrl.isNullOrEmpty()){
+                    if(post.user.imagen.isNullOrEmpty()){
+                        Text(
+                            text = post.user.nombre.first().uppercase(),
+                            color = Color.Black,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    } else {
                         SubcomposeAsyncImage(
-                            model = post.user.imageUrl,
+                            model = post.user.imagen,
                             contentDescription = "Foto de perfil de ${post.user.nombre}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -72,12 +78,6 @@ fun PostCard(post: Post) {
                         ) {
                             SubcomposeAsyncImageContent()
                         }
-                    }else {
-                        Text(
-                            text = post.user.nombre.first().uppercase(),
-                            color = Color.Black,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
                     }
                 }
 

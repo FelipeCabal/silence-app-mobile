@@ -12,5 +12,5 @@ data class UserEntity(
     val sexo: String,
     val fechaNto: String,
     val pais: String,
-    val imageUrl: String
+    val imagen: String? = null
 )

@@ -33,20 +33,20 @@ fun CommentCard(comment: Comment){
             .fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ){
-        if(!comment.usuario.nombre.isNullOrEmpty()){
+        if(comment.usuario.imagen.isNullOrEmpty()){
+            Text(
+                text = comment.usuario.nombre.first().uppercase(),
+                color = Color.Black,
+                style = MaterialTheme.typography.headlineMedium
+            )
+        } else {
             Image(
-                painter = rememberAsyncImagePainter(comment.usuario.imageUrl),
+                painter = rememberAsyncImagePainter(comment.usuario.imagen),
                 contentDescription = "Foto de perfil de ${comment.usuario.nombre}",
                 modifier = Modifier
                     .height(50.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Fit
-            )
-        } else {
-            Text(
-                text = comment.usuario.nombre.first().uppercase(),
-                color = Color.Black,
-                style = MaterialTheme.typography.headlineMedium
             )
         }
 
