@@ -2,26 +2,39 @@
 
 package com.example.silenceapp.view.profile
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.silenceapp.viewmodel.AuthViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.silenceapp.R
 import com.example.silenceapp.data.local.entity.UserEntity
 import com.example.silenceapp.data.remote.response.ProfileResponse
 import com.example.silenceapp.util.toShortDate
+import com.example.silenceapp.viewmodel.FirebaseViewModel
 import com.example.silenceapp.viewmodel.UserViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,16 +43,38 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel){
 
+    val firebaseViewModel: FirebaseViewModel = viewModel()
     var profile by remember { mutableStateOf<ProfileResponse?>(null) }
+    var profileImageUrl by remember { mutableStateOf<String?>(null) }
+    var isUploadingImage by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         authViewModel.getProfile { p ->
             profile = p
+            profileImageUrl = p?.imagen
         }
     }
     LaunchedEffect(Unit) {
         authViewModel.loadToken { token ->
             Log.d("TOKEN", token)
+        }
+    }
+
+    // Launcher para seleccionar imagen de galería
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            isUploadingImage = true
+            firebaseViewModel.uploadImage(it, folder = "profiles/${profile!!.id}") { response ->
+                isUploadingImage = false
+                if (response != null && response.success) {
+                    profileImageUrl = response.data.url
+                    Log.d("EditProfile", "Imagen subida: ${response.data.url}")
+                } else {
+                    Log.e("EditProfile", "Error al subir imagen")
+                }
+            }
         }
     }
 
@@ -112,26 +147,60 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        /*Box(
-            modifier = Modifier.fillMaxWidth(),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(user!!.imageUrl)
-                    .crossfade(true)
-                    .placeholder(R.drawable.avatar_placeholder)
-                    .error(R.drawable.avatar_placeholder)
-                    .build(),
-                contentDescription = "Profile Picture",
+            Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(CircleShape)
-            )
+                    .clickable { imagePickerLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(profileImageUrl ?: R.drawable.avatar_placeholder)
+                        .crossfade(true)
+                        .placeholder(R.drawable.avatar_placeholder)
+                        .error(R.drawable.avatar_placeholder)
+                        .build(),
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                )
+                
+                if (isUploadingImage) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(40.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                // Icono de cámara para indicar que es clickeable
+                if (!isUploadingImage) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(36.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Cambiar foto",
+                            modifier = Modifier.padding(8.dp),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-*/
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -316,7 +385,8 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                     email = email,
                     fechaNto = fechaNto,
                     sexo = sexo,
-                    pais = pais
+                    pais = pais,
+                    imagen = profileImageUrl
                 )
                 userViewModel.updateUserProfile(updatedProfile) { success ->
                     if (success) {
