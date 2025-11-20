@@ -380,14 +380,12 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         Button(
             onClick = {
                 val p = profile!!
-                
-                // Si hay una imagen seleccionada, primero subirla
+
                 if (selectedImageUri != null) {
                     isUploadingImage = true
                     firebaseViewModel.uploadImage(selectedImageUri!!, folder = "profiles/${p.id}") { response ->
                         isUploadingImage = false
                         if (response != null && response.success) {
-                            // Una vez subida la imagen, actualizar el perfil
                             val updatedProfile = UserEntity(
                                 remoteId = p.id,
                                 nombre = name,
@@ -414,7 +412,6 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                         }
                     }
                 } else {
-                    // No hay nueva imagen, solo actualizar datos
                     val updatedProfile = UserEntity(
                         remoteId = p.id,
                         nombre = name,
