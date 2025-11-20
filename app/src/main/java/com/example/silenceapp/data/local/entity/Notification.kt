@@ -19,5 +19,6 @@ data class Notification(
     val time: Timestamp,
     val avatar: String? = null, // Storing image as a URL or resource identifier
     val type: NotificationType,
-    val alreadySeen: Boolean = false
+    val alreadySeen: Boolean = false,
+    val data: String? = null // Optional metadata such as groupId or friendRequestId
 )

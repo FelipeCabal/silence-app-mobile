@@ -15,8 +15,7 @@ import com.example.silenceapp.data.local.entity.Notification
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.data.local.entity.UserEntity
 
-@Database(entities = [UserEntity::class, Post::class, Comment::class, Notification::class], version = 3)
-@TypeConverters(Converters::class)
+@Database(entities = [UserEntity::class, Post::class, Comment::class, Notification::class], version = 4)@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun postDao(): PostDao

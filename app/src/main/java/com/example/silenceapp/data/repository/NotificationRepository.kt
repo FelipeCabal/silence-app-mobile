@@ -12,7 +12,15 @@ class NotificationRepository(private val notificationDao: NotificationDao) {
         notificationDao.insertAll(notifications)
     }
 
+    suspend fun insert(notification: Notification) {
+        notificationDao.insert(notification)
+    }
+
     suspend fun markAsSeen(notificationId: Int) {
         notificationDao.markAsSeen(notificationId)
+    }
+
+    suspend fun hasNotifications(): Boolean {
+        return notificationDao.getNotificationsCount() > 0
     }
 }

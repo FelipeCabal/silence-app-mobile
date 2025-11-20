@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,7 +31,16 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
 
-    //DEVELOPMENT: Skip login and go directly to notifications
+    if (isAuthenticated == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     val startDestination = "notifications"
 
     NavHost(

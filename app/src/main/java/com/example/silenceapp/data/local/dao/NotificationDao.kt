@@ -16,6 +16,12 @@ interface NotificationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(notifications: List<Notification>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(notification: Notification)
+
     @Query("UPDATE notifications SET alreadySeen = 1 WHERE id = :notificationId")
     suspend fun markAsSeen(notificationId: Int)
+
+    @Query("SELECT COUNT(*) FROM notifications")
+    suspend fun getNotificationsCount(): Int
 }

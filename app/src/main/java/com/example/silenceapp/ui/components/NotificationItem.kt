@@ -42,9 +42,9 @@ fun NotificationItem(
     onNotificationClicked: () -> Unit
 ) {
     val backgroundColor = if (notification.alreadySeen) {
-        MaterialTheme.colorScheme.surface
+        MaterialTheme.colorScheme.background
     } else {
-        MaterialTheme.colorScheme.tertiary
+        MaterialTheme.colorScheme.primary
     }
 
     Surface(
@@ -71,7 +71,8 @@ fun NotificationItem(
                                 .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center
                         ) {
-                            val iconVector = if (notification.type == NotificationType.LIKE) Icons.Default.Favorite else Icons.Default.ChatBubble
+                            val iconVector =
+                                if (notification.type == NotificationType.LIKE) Icons.Default.Favorite else Icons.Default.ChatBubble
                             Icon(
                                 imageVector = iconVector,
                                 contentDescription = notification.type.name,
@@ -80,9 +81,12 @@ fun NotificationItem(
                             )
                         }
                     }
+
                     else -> {
                         Image(
-                            painter = rememberAsyncImagePainter(model = notification.avatar ?: R.mipmap.ic_launcher),
+                            painter = rememberAsyncImagePainter(
+                                model = notification.avatar ?: R.mipmap.ic_launcher
+                            ),
                             contentDescription = "Avatar",
                             modifier = Modifier
                                 .size(50.dp)
@@ -114,7 +118,7 @@ fun NotificationItem(
                     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End)
                 ) {
                     Button(
-                        onClick = {  },
+                        onClick = { },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
@@ -125,7 +129,7 @@ fun NotificationItem(
                         )
                     }
                     Button(
-                        onClick = {  },
+                        onClick = { },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
                     ) {
