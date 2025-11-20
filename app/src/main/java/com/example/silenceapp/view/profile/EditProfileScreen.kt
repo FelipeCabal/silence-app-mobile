@@ -15,6 +15,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.silenceapp.viewmodel.AuthViewModel
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
@@ -46,7 +48,9 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
     val firebaseViewModel: FirebaseViewModel = viewModel()
     var profile by remember { mutableStateOf<ProfileResponse?>(null) }
     var profileImageUrl by remember { mutableStateOf<String?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isUploadingImage by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         authViewModel.getProfile { p ->
@@ -65,16 +69,9 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            isUploadingImage = true
-            firebaseViewModel.uploadImage(it, folder = "profiles/${profile!!.id}") { response ->
-                isUploadingImage = false
-                if (response != null && response.success) {
-                    profileImageUrl = response.data.url
-                    Log.d("EditProfile", "Imagen subida: ${response.data.url}")
-                } else {
-                    Log.e("EditProfile", "Error al subir imagen")
-                }
-            }
+            selectedImageUri = it
+            // Mostrar preview temporalmente sin subir aún
+            profileImageUrl = it.toString()
         }
     }
 
@@ -97,11 +94,21 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         return
     }
 
-    var name by remember { mutableStateOf(profile!!.nombre) }
-    var email by remember { mutableStateOf(profile!!.email) }
-    var sexo by remember { mutableStateOf(profile!!.sexo) }
-    var fechaNto by remember { mutableStateOf(profile!!.fechaNto) }
-    var pais by remember { mutableStateOf(profile!!.pais) }
+    var name by remember(profile) { mutableStateOf(profile!!.nombre) }
+    var email by remember(profile) { mutableStateOf(profile!!.email) }
+    var sexo by remember(profile) { mutableStateOf(profile!!.sexo) }
+    var fechaNto by remember(profile) { mutableStateOf(profile!!.fechaNto) }
+    var pais by remember(profile) { mutableStateOf(profile!!.pais) }
+    
+    // Detectar si hubo cambios
+    val hasChanges = remember(name, email, sexo, fechaNto, pais, selectedImageUri, profile) {
+        name != profile!!.nombre || 
+        email != profile!!.email ||
+        sexo != profile!!.sexo ||
+        fechaNto != profile!!.fechaNto ||
+        pais != profile!!.pais ||
+        selectedImageUri != null
+    }
 
     if (showDatePicker) {
         DatePickerDialog(
@@ -136,6 +143,7 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(20.dp),
         horizontalAlignment = Alignment.Start
     ) {
@@ -161,7 +169,7 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(profileImageUrl ?: R.drawable.avatar_placeholder)
+                        .data(selectedImageUri ?: profileImageUrl ?: R.drawable.avatar_placeholder)
                         .crossfade(true)
                         .placeholder(R.drawable.avatar_placeholder)
                         .error(R.drawable.avatar_placeholder)
@@ -171,13 +179,6 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
                         .size(120.dp)
                         .clip(CircleShape)
                 )
-                
-                if (isUploadingImage) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(40.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 
                 // Icono de cámara para indicar que es clickeable
                 if (!isUploadingImage) {
@@ -379,31 +380,82 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         Button(
             onClick = {
                 val p = profile!!
-                val updatedProfile = UserEntity(
-                    remoteId = p.id,
-                    nombre = name,
-                    email = email,
-                    fechaNto = fechaNto,
-                    sexo = sexo,
-                    pais = pais,
-                    imagen = profileImageUrl
-                )
-                userViewModel.updateUserProfile(updatedProfile) { success ->
-                    if (success) {
-                        isEditingName = false
-                        isEditingEmail = false
-                        isEditingSexo = false
-                        isEditingPais = false
-                        isEditingFechaNto = false
-                        // podrías mostrar un snackbar o volver atrás
+                
+                // Si hay una imagen seleccionada, primero subirla
+                if (selectedImageUri != null) {
+                    isUploadingImage = true
+                    firebaseViewModel.uploadImage(selectedImageUri!!, folder = "profiles/${p.id}") { response ->
+                        isUploadingImage = false
+                        if (response != null && response.success) {
+                            // Una vez subida la imagen, actualizar el perfil
+                            val updatedProfile = UserEntity(
+                                remoteId = p.id,
+                                nombre = name,
+                                email = email,
+                                fechaNto = fechaNto,
+                                sexo = sexo,
+                                pais = pais,
+                                imagen = response.data.url
+                            )
+                            userViewModel.updateUserProfile(updatedProfile) { success ->
+                                if (success) {
+                                    isEditingName = false
+                                    isEditingEmail = false
+                                    isEditingSexo = false
+                                    isEditingPais = false
+                                    isEditingFechaNto = false
+                                    selectedImageUri = null
+                                    profileImageUrl = response.data.url
+                                    Log.d("EditProfile", "Perfil actualizado con nueva imagen")
+                                }
+                            }
+                        } else {
+                            Log.e("EditProfile", "Error al subir imagen")
+                        }
+                    }
+                } else {
+                    // No hay nueva imagen, solo actualizar datos
+                    val updatedProfile = UserEntity(
+                        remoteId = p.id,
+                        nombre = name,
+                        email = email,
+                        fechaNto = fechaNto,
+                        sexo = sexo,
+                        pais = pais,
+                        imagen = profileImageUrl
+                    )
+                    userViewModel.updateUserProfile(updatedProfile) { success ->
+                        if (success) {
+                            isEditingName = false
+                            isEditingEmail = false
+                            isEditingSexo = false
+                            isEditingPais = false
+                            isEditingFechaNto = false
+                            Log.d("EditProfile", "Perfil actualizado")
+                        }
                     }
                 }
             },
+            enabled = hasChanges && !isUploadingImage,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text("Guardar")
+            if (isUploadingImage) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Guardando...")
+                }
+            } else {
+                Text("Guardar")
+            }
         }
 
         Button(onClick = {
