@@ -25,8 +25,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 val success = withContext(Dispatchers.IO){
                     repository.updateUserProfile(user)
                 }
+                onResult(success)
             }catch (e: Exception){
-
+                onResult(false)
             }
         }
     }
