@@ -20,7 +20,8 @@ class UserRepository (
             //email = user.email,
             //fechaNto = user.fechaNto,
             //sexo = user.sexo,
-            pais = user.pais
+            pais = user.pais,
+            imagen = user.imagen
         )
         try {
             api.update("Bearer $token", user.remoteId, userRequest)

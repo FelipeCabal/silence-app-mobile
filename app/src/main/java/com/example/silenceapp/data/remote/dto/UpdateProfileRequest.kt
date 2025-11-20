@@ -5,5 +5,6 @@ data class UpdateProfileRequest (
     //val email: String,
     //val sexo: String,
     //val fechaNto: String,
-    val pais: String
+    val pais: String,
+    val imagen: String? = null
 )
