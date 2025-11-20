@@ -63,7 +63,7 @@ fun NavGraph(navController: NavHostController) {
     { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = start,
+            startDestination = "home",
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("login") {
@@ -106,18 +106,18 @@ fun NavGraph(navController: NavHostController) {
                     EditProfileScreen(navController, authViewModel, userViewModel)
                 }
             }
-            composable("home") {
-                if (isAuthenticated != true) {
-                    LaunchedEffect(Unit) {
-                        navController.navigate("login") {
-                            popUpTo("home") { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                } else {
-                    HomeScreen()
-                }
-            }
+//            composable("home") {
+//                if (isAuthenticated != true) {
+//                    LaunchedEffect(Unit) {
+//                        navController.navigate("login") {
+//                            popUpTo("home") { inclusive = true }
+//                            launchSingleTop = true
+//                        }
+//                    }
+//                } else {
+//                    HomeScreen()
+//                }
+//            }
         }
     }
 }
