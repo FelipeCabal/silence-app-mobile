@@ -14,11 +14,15 @@ import com.example.silenceapp.ui.components.PostCard
 import com.example.silenceapp.viewmodel.PostViewModel
 
 @Composable
-fun PostScreen(viewModel: PostViewModel = viewModel()){
+fun PostScreen(
+    postViewModel: PostViewModel = viewModel(),
+    key: String? = null
+){
     var postsState by remember { mutableStateOf<List<Post>>(emptyList()) }
 
-    LaunchedEffect(Unit) {
-        viewModel.getPosts { posts ->
+    // Recargar posts cada vez que cambia la clave (cada navegación)
+    LaunchedEffect(key) {
+        postViewModel.getPosts { posts ->
             postsState = posts
         }
     }

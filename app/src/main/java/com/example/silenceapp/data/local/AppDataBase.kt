@@ -13,7 +13,7 @@ import com.example.silenceapp.data.local.entity.Comment
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.data.local.entity.UserEntity
 
-@Database(entities = [UserEntity::class, Post::class, Comment::class], version = 2)
+@Database(entities = [UserEntity::class, Post::class, Comment::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

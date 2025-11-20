@@ -2,6 +2,9 @@ package com.example.silenceapp.viewmodel
 
 
 import android.app.Application
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.silenceapp.data.local.DatabaseProvider
@@ -14,8 +17,11 @@ import kotlinx.coroutines.withContext
 class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userDao = DatabaseProvider.getDatabase(application).userDao()
-
     private val repository = UserRepository(userDao)
+    
+    // Estado del usuario logueado
+    var loggedInUser by mutableStateOf<UserEntity?>(null)
+        private set
 
     fun registerUser(name: String, email: String, password: String, phoneNumber: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
@@ -30,6 +36,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val user = withContext(Dispatchers.IO) {
                 repository.loginUser(email, password)
+            }
+            if (user != null) {
+                loggedInUser = user // Guardar el usuario logueado
             }
             onResult(user != null)
         }
