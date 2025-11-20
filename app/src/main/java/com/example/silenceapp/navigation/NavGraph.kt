@@ -90,6 +90,9 @@ fun NavGraph(navController: NavHostController) {
                     RegisterScreen(navController, authViewModel)
                 }
             }
+            composable("home") {
+                TestingViews()
+            }
 
             composable("edit-profile") {
                 if (isAuthenticated != true) {
