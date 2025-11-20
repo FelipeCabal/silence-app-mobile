@@ -2,7 +2,6 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-
     "identityHash": "389b927e4e329e7e9a0647f317eb7a5b",
     "entities": [
       {
@@ -55,7 +54,7 @@
             "fieldPath": "imagen",
             "columnName": "imagen",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           }
         ],
         "primaryKey": {

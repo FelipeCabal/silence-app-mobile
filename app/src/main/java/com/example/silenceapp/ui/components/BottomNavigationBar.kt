@@ -35,7 +35,8 @@ fun BottomNavigationBar(navController: NavController)
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     NavigationBar (
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.height(50.dp)
     ){
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
@@ -48,7 +49,7 @@ fun BottomNavigationBar(navController: NavController)
                             imageVector = Icons.Default.Home,
                             contentDescription = "Inicio",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
 
@@ -76,7 +77,7 @@ fun BottomNavigationBar(navController: NavController)
                             Icons.Default.Search,
                             contentDescription = "Buscar",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )}
 
                     // Línea verde solo cuando está seleccionado
@@ -103,7 +104,7 @@ fun BottomNavigationBar(navController: NavController)
                             Icons.Default.AddBox,
                             contentDescription = "Add",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )}
 
                     if (currentRoute == "add") {
@@ -129,7 +130,7 @@ fun BottomNavigationBar(navController: NavController)
                             Icons.Default.Notifications,
                             contentDescription = "Notificaciones",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )}
 
                     if (currentRoute == "notify") {
@@ -155,7 +156,7 @@ fun BottomNavigationBar(navController: NavController)
                             Icons.Default.AccountCircle,
                             contentDescription = "Perfil",
                             tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(32.dp)
                         )}
 
                     if (currentRoute == "edit-profile") {
