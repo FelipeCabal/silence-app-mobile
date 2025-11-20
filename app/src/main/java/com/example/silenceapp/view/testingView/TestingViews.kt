@@ -12,8 +12,12 @@ import com.google.gson.Gson
 @Composable
 fun TestingViews(){
     val gson = Gson()
-    
     // Posts de prueba con la nueva estructura
+    val user = listOf(
+        UserEntity(1, "1", "Sanji", "user@correo.com", "Masculino","1990-01-01", "Colombia", "https://i.pinimg.com/736x/f3/af/98/f3af98f4fd136039a5775b53e76b272a.jpg" ),
+        UserEntity(2, "2", "Luffy D. Monkey", "user@correo.com", "Masculino","1990-01-01", "Colombia")
+    )
+
     val posts = listOf(
         Post(
             id = 1,

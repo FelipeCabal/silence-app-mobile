@@ -1,6 +1,9 @@
 package com.example.silenceapp.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -13,27 +16,119 @@ import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.posts.PostScreen
 import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
+import com.example.silenceapp.viewmodel.AuthViewModel
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import com.example.silenceapp.viewmodel.UserViewModel
 import com.example.silenceapp.viewmodel.PostViewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.Scaffold
+import com.example.silenceapp.ui.components.TopBar
+import com.example.silenceapp.ui.components.BottomNavigationBar
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import com.example.silenceapp.view.home.HomeScreen
 
 @Composable
-fun NavGraph(navController: NavHostController = rememberNavController()) {
+fun NavGraph(navController: NavHostController) {
 
+    val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
     val ROUTE_ADD_POST = "add-post"
+    val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
 
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
-        composable("login") {
-            LoginScreen(navController, userViewModel)
+
+    if (isAuthenticated == null) {
+        Box(modifier = androidx.compose.ui.Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
-        composable("register") {
-            RegisterScreen(navController, userViewModel)
+        
+        return
+    }
+
+    //Debe cambiar esto cuando se implemente la homepage
+    val homescreen = "edit-profile"
+    val start = if (isAuthenticated == true) homescreen else "login"
+
+    // Obtener la ruta actual correctamente
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
+
+    // Ocultar barras en login y register
+    val showBar = currentRoute !in listOf("login", "register")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile")
+
+    Scaffold(
+        topBar = {
+            if (showBarTop) TopBar()
+        },
+        bottomBar = {
+            if (showBar) BottomNavigationBar(navController)
+
         }
-        composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
+    )
+    { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = start,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("login") {
+                if (isAuthenticated == true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(homescreen) {
+                            popUpTo("login") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    LoginScreen(navController, authViewModel)
+                }
+            }
+            composable("register") {
+                if (isAuthenticated == true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(homescreen) {
+                            popUpTo("register") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    RegisterScreen(navController, authViewModel)
+                }
+            }
+            composable("home") {
+                TestingViews()
+            }
+
+            composable("edit-profile") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("edit-profile") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    EditProfileScreen(navController, authViewModel, userViewModel)
+                }
+            }
+            composable("home") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    HomeScreen()
+                }
+            }
+            composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
             listOf( navArgument("imageUri"){
             nullable = true
             defaultValue = null
@@ -47,16 +142,6 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                 postViewModel = postViewModel
             )
         }
-        composable("home") { backStackEntry ->
-            PostScreen(postViewModel = postViewModel, key = backStackEntry.id)
-        }
-        
-        composable("testing") {
-            TestingViews()
-        }
-
-        composable("edit-profile") {
-            EditProfileScreen(navController, userViewModel)
         }
     }
 }
