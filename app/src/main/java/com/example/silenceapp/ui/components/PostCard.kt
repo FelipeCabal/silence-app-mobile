@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import coil.compose.rememberAsyncImagePainter
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.ui.theme.PaleMint
@@ -59,11 +61,24 @@ fun PostCard(post: Post) {
                         .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = post.user.nombre.first().uppercase(),
-                        color = Color.Black,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
+                    if(post.user.imagen.isNullOrEmpty()){
+                        Text(
+                            text = post.user.nombre.first().uppercase(),
+                            color = Color.Black,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+                    } else {
+                        SubcomposeAsyncImage(
+                            model = post.user.imagen,
+                            contentDescription = "Foto de perfil de ${post.user.nombre}",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(CircleShape)
+                        ) {
+                            SubcomposeAsyncImageContent()
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -103,8 +118,8 @@ fun PostCard(post: Post) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(500.dp),
-                        //.clip(RoundedCornerShape(8.dp)),
-                   contentScale = ContentScale.FillHeight
+                    //.clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.FillHeight
                 )
             }
 

@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.silenceapp.ui.components.NotificationItem
-import com.example.silenceapp.view.notifications.viewmodel.NotificationViewModel
+import com.example.silenceapp.viewmodel.NotificationViewModel
 
 @Composable
 fun NotificationsScreen(viewModel: NotificationViewModel = viewModel()) {

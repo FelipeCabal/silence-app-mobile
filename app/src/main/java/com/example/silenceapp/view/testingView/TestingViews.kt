@@ -5,38 +5,36 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.silenceapp.data.local.entity.UserEntity
 import com.example.silenceapp.data.local.entity.Comment
 import com.example.silenceapp.data.local.entity.Post
-import com.example.silenceapp.data.local.entity.UserEntity
 import com.example.silenceapp.ui.components.CommentCard
 import com.example.silenceapp.ui.components.PostCard
-import java.sql.Timestamp
-import java.util.Date
 
 @Composable
 fun TestingViews(){
     val user = listOf(
-        UserEntity(id = 1, remoteId = "user1", nombre = "Sanji", email = "user@correo.com", sexo = "Male", fechaNto = "1990-03-02", pais = "Japan"),
-        UserEntity(id = 2, remoteId = "user2", nombre = "Luffy D. Monkey", email = "user2@correo.com", sexo = "Male", fechaNto = "1994-05-05", pais = "Brazil")
+        UserEntity(1, "1", "Sanji", "user@correo.com", "Masculino","1990-01-01", "Colombia", "https://i.pinimg.com/736x/f3/af/98/f3af98f4fd136039a5775b53e76b272a.jpg" ),
+        UserEntity(2, "2", "Luffy D. Monkey", "user@correo.com", "Masculino","1990-01-01", "Colombia")
 
     )
     val posts = listOf(
-        Post(id = 1, user = user[1], description =  "¿Pero por qué somos tan pobres?", createdAt = Timestamp(Date().time)),
-        Post(id = 2, user = user[0], description = "Que no lo vea Roronoa", imagen = "https://i.ytimg.com/vi/aac9iYHwwpc/maxresdefault.jpg", createdAt = Timestamp(Date().time))
+        Post(1, user = user[1], description =  "¿Pero por qué somos tan pobres?"),
+        Post(2, user = user[0], description = "Que no lo vea Roronoa", imagen = "https://i.ytimg.com/vi/aac9iYHwwpc/maxresdefault.jpg")
     )
     val comments = listOf(
-        Comment(id = 2, usuario = user[0], postId = 1, comentario = "Es por tu comidaaa!!", CreatedAt = Timestamp(Date().time))
+        Comment(2, usuario = user[0], postId = 1, comentario = "Es por tu comidaaa!!")
     )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ){
         items(posts){
-            post ->
+                post ->
             PostCard(post)
         }
         items(comments){
-            comment ->
+                comment ->
             CommentCard(comment)
         }
     }

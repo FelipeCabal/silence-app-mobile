@@ -1,4 +1,4 @@
-package com.example.silenceapp.view.notifications.viewmodel
+package com.example.silenceapp.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -21,7 +21,7 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
     val notifications: StateFlow<List<Notification>> = repository.getAllNotifications()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Companion.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 

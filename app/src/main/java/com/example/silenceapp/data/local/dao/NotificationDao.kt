@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NotificationDao {
 
-    @Query("SELECT * FROM notifications ORDER BY time DESC")
-    fun getAllNotifications(): Flow<List<Notification>>
+    @Query("SELECT * FROM notifications WHERE user = :userId ORDER BY time DESC")
+    fun getAllNotifications(userId: String): Flow<List<Notification>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(notifications: List<Notification>)
@@ -22,6 +22,6 @@ interface NotificationDao {
     @Query("UPDATE notifications SET alreadySeen = 1 WHERE id = :notificationId")
     suspend fun markAsSeen(notificationId: Int)
 
-    @Query("SELECT COUNT(*) FROM notifications")
-    suspend fun getNotificationsCount(): Int
+    @Query("SELECT COUNT(*) FROM notifications WHERE user = :userId AND alreadySeen = 0")
+    suspend fun getNotificationsCount(userId: String): Int
 }
