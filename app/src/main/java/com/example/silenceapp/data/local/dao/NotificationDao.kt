@@ -22,6 +22,6 @@ interface NotificationDao {
     @Query("UPDATE notifications SET alreadySeen = 1 WHERE id = :notificationId")
     suspend fun markAsSeen(notificationId: Int)
 
-    @Query("SELECT COUNT(*) FROM notifications WHERE user = :userId AND alreadySeen = 0")
+    @Query("SELECT COUNT(*) FROM notifications WHERE userId = :userId AND alreadySeen = 0")
     suspend fun getNotificationsCount(userId: String): Int
 }
