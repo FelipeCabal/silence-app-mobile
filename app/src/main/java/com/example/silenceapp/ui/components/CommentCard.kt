@@ -58,7 +58,7 @@ fun CommentCard(comment: Comment){
                     color = MintGreen,
                     shape = RoundedCornerShape(14.dp),
 
-                )
+                    )
                 .padding(12.dp),
         ){
             Text(

@@ -17,6 +17,7 @@ import com.example.silenceapp.view.posts.PostScreen
 import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
+import com.example.silenceapp.view.notifications.NotificationsScreen
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -115,6 +116,18 @@ fun NavGraph(navController: NavHostController) {
                     }
                 } else {
                     EditProfileScreen(navController, authViewModel, userViewModel)
+                }
+            }
+            composable("notifications") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("notifications") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    NotificationsScreen()
                 }
             }
             composable("home") {
