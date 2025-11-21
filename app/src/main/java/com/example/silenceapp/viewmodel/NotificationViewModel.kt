@@ -31,18 +31,21 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
 
             val sampleNotifications = listOf(
                 Notification(
+                    userId = "1",
                     user = "Esperanza0",
                     action = "le gusto tu publicacion",
                     time = Timestamp(System.currentTimeMillis() - 10000),
                     type = NotificationType.LIKE
                 ),
                 Notification(
+                    userId = "1",
                     user = "GinaPao",
                     action = "comento tu publicacion",
                     time = Timestamp(System.currentTimeMillis() - 20000),
                     type = NotificationType.COMMENT
                 ),
                 Notification(
+                    userId = "1",
                     user = "RezeBoom",
                     action = "quiere ser tu amigo:",
                     time = Timestamp(System.currentTimeMillis() - 300000),
@@ -51,12 +54,14 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
                     data = "friend_request_1"
                 ),
                 Notification(
+                    userId = "1",
                     user = "JuanDC",
                     action = "le gusto tu publicacion",
                     time = Timestamp(System.currentTimeMillis() - 600000),
                     type = NotificationType.LIKE
                 ),
                 Notification(
+                    userId = "1",
                     user = "MariaR",
                     action = "comento tu publicacion",
                     time = Timestamp(System.currentTimeMillis() - 900000),

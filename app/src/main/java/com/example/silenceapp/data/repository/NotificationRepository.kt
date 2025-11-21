@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 class NotificationRepository(private val notificationDao: NotificationDao) {
 
-    fun getAllNotifications(): Flow<List<Notification>> = notificationDao.getAllNotifications()
+    fun getAllNotifications(): Flow<List<Notification>> = notificationDao.getAllNotifications("1")
 
     suspend fun insertAll(notifications: List<Notification>) {
         notificationDao.insertAll(notifications)
@@ -21,6 +21,6 @@ class NotificationRepository(private val notificationDao: NotificationDao) {
     }
 
     suspend fun hasNotifications(): Boolean {
-        return notificationDao.getNotificationsCount() > 0
+        return notificationDao.getNotificationsCount("1") > 0
     }
 }

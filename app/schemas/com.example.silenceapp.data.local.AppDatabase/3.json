@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "c4c4e74ad3492aa8206bb0779a98ed78",
+    "identityHash": "b3c6601181476d1c8486ea447b27ef9d",
     "entities": [
       {
         "tableName": "users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `email` TEXT NOT NULL, `sexo` TEXT NOT NULL, `fechaNto` TEXT NOT NULL, `pais` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `email` TEXT NOT NULL, `sexo` TEXT NOT NULL, `fechaNto` TEXT NOT NULL, `pais` TEXT NOT NULL, `imagen` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -49,6 +49,12 @@
             "columnName": "pais",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "imagen",
+            "columnName": "imagen",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -62,7 +68,7 @@
       },
       {
         "tableName": "posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `user` TEXT NOT NULL, `description` TEXT, `imagen` TEXT, `cantlikes` INTEGER NOT NULL, `comentarios` TEXT, `cantComentarios` INTEGER NOT NULL, `esAnonimo` INTEGER, `createdAt` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `description` TEXT, `images` TEXT, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `esAnonimo` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -77,8 +83,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "user",
-            "columnName": "user",
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userName",
+            "columnName": "userName",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -89,12 +101,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "imagen",
-            "columnName": "imagen",
+            "fieldPath": "images",
+            "columnName": "images",
             "affinity": "TEXT",
             "notNull": false
           },
           {
+            "fieldPath": "cantLikes",
+            "columnName": "cantLikes",
             "fieldPath": "cantlikes",
             "columnName": "cantlikes",
             "affinity": "INTEGER",
@@ -116,13 +130,13 @@
             "fieldPath": "esAnonimo",
             "columnName": "esAnonimo",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {

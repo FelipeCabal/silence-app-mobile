@@ -8,8 +8,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
+import com.example.silenceapp.view.posts.CreatePostScreen
+import com.example.silenceapp.view.posts.PostScreen
+import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.view.notifications.NotificationsScreen
@@ -18,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import com.example.silenceapp.viewmodel.UserViewModel
+import com.example.silenceapp.viewmodel.PostViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.Scaffold
 import com.example.silenceapp.ui.components.TopBar
@@ -31,12 +37,16 @@ fun NavGraph(navController: NavHostController) {
 
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
+    val postViewModel: PostViewModel = viewModel()
+    val ROUTE_ADD_POST = "add-post"
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
+
 
     if (isAuthenticated == null) {
         Box(modifier = androidx.compose.ui.Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
+        
         return
     }
 
@@ -50,7 +60,8 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") && 
+                     !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
@@ -58,6 +69,7 @@ fun NavGraph(navController: NavHostController) {
         },
         bottomBar = {
             if (showBar) BottomNavigationBar(navController)
+
         }
     )
     { innerPadding ->
@@ -127,9 +139,23 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    HomeScreen()
+                    PostScreen()
                 }
             }
+            composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
+            listOf( navArgument("imageUri"){
+            nullable = true
+            defaultValue = null
+        })
+        ){  backStack ->
+            val imageUri = backStack.arguments?.getString("imageUri")
+            CreatePostScreen(
+                navController = navController,
+                imageUri = imageUri,
+                authViewModel = authViewModel,
+                postViewModel = postViewModel
+            )
+        }
         }
     }
 }

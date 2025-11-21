@@ -1,6 +1,9 @@
 package com.example.silenceapp.viewmodel
 
 import android.app.Application
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.silenceapp.data.datastore.AuthDataStore

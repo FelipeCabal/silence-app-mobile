@@ -107,7 +107,7 @@ fun BottomNavigationBar(navController: NavController)
                             modifier = Modifier.size(32.dp)
                         )}
 
-                    if (currentRoute == "add") {
+                    if (currentRoute == "add-post") {
                         Box(
                             modifier = Modifier
                                 .height(3.dp)
@@ -116,8 +116,8 @@ fun BottomNavigationBar(navController: NavController)
                         )
                     }
                 }},
-            selected =  currentRoute == "add",
-            onClick = { navController.navigate("add") }
+            selected =  currentRoute == "add-post",
+            onClick = { navController.navigate("add-post") }
         )
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
@@ -133,7 +133,7 @@ fun BottomNavigationBar(navController: NavController)
                             modifier = Modifier.size(32.dp)
                         )}
 
-                    if (currentRoute == "notify") {
+                    if (currentRoute == "notifications") {
                         Box(
                             modifier = Modifier
                                 .height(3.dp)
@@ -142,8 +142,8 @@ fun BottomNavigationBar(navController: NavController)
                         )
                     }
                 }},
-            selected =  currentRoute == "notify",
-            onClick = { navController.navigate("notify") }
+            selected =  currentRoute == "notifications",
+            onClick = { navController.navigate("notifications") }
         )
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),

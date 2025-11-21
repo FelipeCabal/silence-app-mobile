@@ -69,7 +69,7 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = IBMPlexSans,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
