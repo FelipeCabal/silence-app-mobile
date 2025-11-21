@@ -14,8 +14,9 @@ enum class NotificationType {
 @Entity(tableName = "notifications")
 data class Notification(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val user: String, // We can enhance this later to be a foreign key to a User entity
+    val userId: String, // We can enhance this later to be a foreign key to a User entity
     val action: String,
+    val user: String,
     val time: Timestamp,
     val avatar: String? = null, // Storing image as a URL or resource identifier
     val type: NotificationType,

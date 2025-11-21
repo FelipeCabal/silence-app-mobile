@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "ae8391d5ca512a4a70cee97af619f84c",
+    "identityHash": "95b08a507acaa36e4dee7279024564aa",
     "entities": [
       {
         "tableName": "users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `email` TEXT NOT NULL, `sexo` TEXT NOT NULL, `fechaNto` TEXT NOT NULL, `pais` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `email` TEXT NOT NULL, `sexo` TEXT NOT NULL, `fechaNto` TEXT NOT NULL, `pais` TEXT NOT NULL, `imagen` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -49,6 +49,12 @@
             "columnName": "pais",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "imagen",
+            "columnName": "imagen",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -62,7 +68,7 @@
       },
       {
         "tableName": "posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `user` TEXT NOT NULL, `description` TEXT, `imagen` TEXT, `cantlikes` INTEGER NOT NULL, `comentarios` TEXT, `cantComentarios` INTEGER NOT NULL, `esAnonimo` INTEGER, `createdAt` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `description` TEXT, `images` TEXT, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `esAnonimo` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -77,8 +83,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "user",
-            "columnName": "user",
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userName",
+            "columnName": "userName",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -89,22 +101,16 @@
             "notNull": false
           },
           {
-            "fieldPath": "imagen",
-            "columnName": "imagen",
+            "fieldPath": "images",
+            "columnName": "images",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "cantlikes",
-            "columnName": "cantlikes",
+            "fieldPath": "cantLikes",
+            "columnName": "cantLikes",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "comentarios",
-            "columnName": "comentarios",
-            "affinity": "TEXT",
-            "notNull": false
           },
           {
             "fieldPath": "cantComentarios",
@@ -116,13 +122,13 @@
             "fieldPath": "esAnonimo",
             "columnName": "esAnonimo",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -208,7 +214,7 @@
       },
       {
         "tableName": "notifications",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `user` TEXT NOT NULL, `action` TEXT NOT NULL, `time` INTEGER NOT NULL, `avatar` TEXT, `type` TEXT NOT NULL, `alreadySeen` INTEGER NOT NULL, `data` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` TEXT NOT NULL, `action` TEXT NOT NULL, `user` TEXT NOT NULL, `time` INTEGER NOT NULL, `avatar` TEXT, `type` TEXT NOT NULL, `alreadySeen` INTEGER NOT NULL, `data` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -217,14 +223,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "user",
-            "columnName": "user",
+            "fieldPath": "userId",
+            "columnName": "userId",
             "affinity": "TEXT",
             "notNull": true
           },
           {
             "fieldPath": "action",
             "columnName": "action",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "user",
+            "columnName": "user",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -272,7 +284,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ae8391d5ca512a4a70cee97af619f84c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '95b08a507acaa36e4dee7279024564aa')"
     ]
   }
 }

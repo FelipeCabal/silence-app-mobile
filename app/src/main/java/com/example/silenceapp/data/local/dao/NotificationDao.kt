@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NotificationDao {
 
-    @Query("SELECT * FROM notifications WHERE user = :userId ORDER BY time DESC")
+    @Query("SELECT * FROM notifications WHERE userId = :userId ORDER BY time DESC")
     fun getAllNotifications(userId: String): Flow<List<Notification>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
