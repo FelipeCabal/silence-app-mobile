@@ -59,7 +59,8 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") && 
+                     !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
@@ -125,7 +126,7 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    HomeScreen()
+                    PostScreen()
                 }
             }
             composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
@@ -138,7 +139,7 @@ fun NavGraph(navController: NavHostController) {
             CreatePostScreen(
                 navController = navController,
                 imageUri = imageUri,
-                userViewModel = userViewModel,
+                authViewModel = authViewModel,
                 postViewModel = postViewModel
             )
         }

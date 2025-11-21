@@ -57,6 +57,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val success = repository.loginUser(email, password)
                 _authSuccess.value = success
             } catch (e: Exception) {
+                e.printStackTrace() // Imprimir el error en logcat
                 _authSuccess.value = false
             }
         }

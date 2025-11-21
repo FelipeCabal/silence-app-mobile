@@ -75,24 +75,11 @@ fun PostCard(post: Post) {
                         .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    if(post.user.imagen.isNullOrEmpty()){
-                        Text(
-                            text = post.user.nombre.first().uppercase(),
-                            color = Color.Black,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                    } else {
-                        SubcomposeAsyncImage(
-                            model = post.user.imagen,
-                            contentDescription = "Foto de perfil de ${post.user.nombre}",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clip(CircleShape)
-                        ) {
-                            SubcomposeAsyncImageContent()
-                        }
-                    }
+                    Text(
+                        text = post.userName.firstOrNull()?.uppercase() ?: "U",
+                        color = Color.Black,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -100,7 +87,7 @@ fun PostCard(post: Post) {
                 // Nombre y tiempo
                 Column {
                     Text(
-                        text = if (post.esAnonimo) "Anónimo" else post.user.nombre,               
+                        text = if (post.esAnonimo) "Anónimo" else post.userName,               
                         color = onBackgroundColor,
                         style = MaterialTheme.typography.titleSmall,
                     )

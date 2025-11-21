@@ -61,7 +61,8 @@ import com.example.silenceapp.ui.components.imagecapture.rememberImagePickerActi
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.primaryColor
 import com.example.silenceapp.viewmodel.PostViewModel
-import com.example.silenceapp.viewmodel.UserViewModel
+import com.example.silenceapp.viewmodel.AuthViewModel
+import com.example.silenceapp.data.remote.response.ProfileResponse
 import androidx.compose.ui.geometry.Size
 import com.example.silenceapp.ui.theme.DimGray
 import com.example.silenceapp.ui.theme.lightGray
@@ -72,7 +73,7 @@ import com.example.silenceapp.ui.theme.secondaryColor
 fun CreatePostScreen(
     navController: NavController,
     imageUri: String?,
-    userViewModel: UserViewModel,
+    authViewModel: AuthViewModel,
     postViewModel: PostViewModel = viewModel()
 ){
     var message by remember { mutableStateOf("") }
@@ -82,8 +83,14 @@ fun CreatePostScreen(
     // Mantener múltiples imágenes seleccionadas localmente
     val pickedImages = remember { mutableStateListOf<String>() }
     
-    // Obtener usuario logueado
-    val loggedUser = userViewModel.loggedInUser
+    // Obtener perfil del usuario
+    var userProfile by remember { mutableStateOf<ProfileResponse?>(null) }
+    
+    LaunchedEffect(Unit) {
+        authViewModel.getProfile { profile ->
+            userProfile = profile
+        }
+    }
 
     // Inicializar con la imagen recibida (si existe) sólo una vez
     LaunchedEffect(imageUri) {
@@ -148,7 +155,7 @@ fun CreatePostScreen(
                     contentScale = ContentScale.Crop
                 )
                 Text(
-                    loggedUser?.name ?: "Usuario",
+                    userProfile?.nombre ?: "Usuario",
                     color = onBackgroundColor,
                     style = MaterialTheme.typography.titleSmall
                 )
@@ -248,8 +255,8 @@ fun CreatePostScreen(
                 onClick = {
                     if (message.isNotEmpty() || pickedImages.isNotEmpty()) {
 
-                        val user = loggedUser
-                        if (user == null) {
+                        val profile = userProfile
+                        if (profile == null) {
                             // Si no hay usuario, volver al login
                             navController.navigate("login") {
                                 popUpTo("add-post") { inclusive = true }
@@ -259,8 +266,8 @@ fun CreatePostScreen(
                         
                         isPublishing = true
                         postViewModel.createPost(
-                            userId = user.id,
-                            userName = user.name,
+                            userId = profile.id,
+                            userName = profile.nombre,
                             description = message.ifEmpty { null },
                             imageUris = pickedImages.toList(),
                             esAnonimo = esAnonimo

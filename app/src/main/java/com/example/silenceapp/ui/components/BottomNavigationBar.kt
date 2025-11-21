@@ -107,7 +107,7 @@ fun BottomNavigationBar(navController: NavController)
                             modifier = Modifier.size(32.dp)
                         )}
 
-                    if (currentRoute == "add") {
+                    if (currentRoute == "add-post") {
                         Box(
                             modifier = Modifier
                                 .height(3.dp)
@@ -116,8 +116,8 @@ fun BottomNavigationBar(navController: NavController)
                         )
                     }
                 }},
-            selected =  currentRoute == "add",
-            onClick = { navController.navigate("add") }
+            selected =  currentRoute == "add-post",
+            onClick = { navController.navigate("add-post") }
         )
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),

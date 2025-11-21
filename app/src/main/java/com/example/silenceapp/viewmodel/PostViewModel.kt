@@ -32,7 +32,7 @@ class PostViewModel(application: Application): AndroidViewModel(application){
     }
     
     fun createPost(
-        userId: Int,
+        userId: String,
         userName: String,
         description: String?,
         imageUris: List<String>,
