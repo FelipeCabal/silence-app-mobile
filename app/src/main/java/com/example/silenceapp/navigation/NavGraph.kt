@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
+import com.example.silenceapp.view.chat.ChatListScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.posts.PostScreen
 import com.example.silenceapp.view.testingView.TestingViews
@@ -51,7 +52,7 @@ fun NavGraph(navController: NavHostController) {
     }
 
     //Debe cambiar esto cuando se implemente la homepage
-    val homescreen = "edit-profile"
+    val homescreen = "home"
     val start = if (isAuthenticated == true) homescreen else "login"
 
     // Obtener la ruta actual correctamente
@@ -60,12 +61,12 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") && 
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats") && 
                      !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
-            if (showBarTop) TopBar()
+            if (showBarTop) TopBar(navController)
         },
         bottomBar = {
             if (showBar) BottomNavigationBar(navController)
@@ -128,6 +129,18 @@ fun NavGraph(navController: NavHostController) {
                     }
                 } else {
                     NotificationsScreen()
+                }
+            }
+            composable("chats") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("chats") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ChatListScreen(navController)
                 }
             }
             composable("home") {
