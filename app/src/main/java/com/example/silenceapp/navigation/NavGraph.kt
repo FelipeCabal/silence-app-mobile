@@ -14,8 +14,8 @@ import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.posts.PostScreen
-import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
+import com.example.silenceapp.view.profile.ProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.view.notifications.NotificationsScreen
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +31,7 @@ import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import com.example.silenceapp.view.home.HomeScreen
+import com.example.silenceapp.viewmodel.ProfileViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -38,6 +39,7 @@ fun NavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
     val ROUTE_ADD_POST = "add-post"
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
 
@@ -51,7 +53,7 @@ fun NavGraph(navController: NavHostController) {
     }
 
     //Debe cambiar esto cuando se implemente la homepage
-    val homescreen = "edit-profile"
+    val homescreen = "profile/self"
     val start = if (isAuthenticated == true) homescreen else "login"
 
     // Obtener la ruta actual correctamente
@@ -102,8 +104,21 @@ fun NavGraph(navController: NavHostController) {
                     RegisterScreen(navController, authViewModel)
                 }
             }
-            composable("home") {
-                TestingViews()
+            composable(
+                route = "profile/{userId}",
+                arguments = listOf(navArgument("userId") { defaultValue = "self" })
+            ) { backStackEntry ->
+                val userIdArg = backStackEntry.arguments?.getString("userId") ?: "self"
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("profile/{userId}") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ProfileScreen(navController, userIdArg, profileViewModel)
+                }
             }
 
             composable("edit-profile") {

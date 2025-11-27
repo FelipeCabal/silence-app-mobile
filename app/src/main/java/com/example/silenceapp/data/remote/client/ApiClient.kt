@@ -4,6 +4,7 @@ import com.example.silenceapp.BuildConfig
 import com.example.silenceapp.data.remote.service.AuthService
 import android.util.Log
 import com.example.silenceapp.data.remote.service.FirebaseService
+import com.example.silenceapp.data.remote.service.ProfileService
 import com.example.silenceapp.data.remote.service.UserService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -35,6 +36,7 @@ object ApiClient {
     val authService: AuthService = retrofit.create(AuthService::class.java)
     val userService: UserService = retrofit.create(UserService::class.java)
     val firebaseService: FirebaseService = retrofit.create(FirebaseService::class.java)
+    val profileService: ProfileService = retrofit.create(ProfileService::class.java)
 
     init {
         Log.d(TAG, "Using BASE_URL: $BASE_URL")
