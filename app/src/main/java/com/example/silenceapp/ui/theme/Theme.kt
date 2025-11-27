@@ -1,6 +1,5 @@
 package com.example.silenceapp.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,14 +9,16 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import com.example.silenceapp.ui.theme.MintGreen
 
 private val DarkColorScheme = darkColorScheme(
     primary = MediumGreen,
     secondary = DarkGreen,
     tertiary = PaleMint,
     surface = MintGreen,
-    background = DarkGray
+    background = DarkGray,
+    onBackground = White,
+    error = Red,
+
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -25,7 +26,10 @@ private val LightColorScheme = lightColorScheme(
     secondary = DarkGreen,
     tertiary = PaleMint,
     surface = MintGreen,
-    background = White
+    background = White,
+    onBackground = DarkGray,
+    error = Red,
+
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -42,7 +46,7 @@ private val LightColorScheme = lightColorScheme(
 fun SilenceAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

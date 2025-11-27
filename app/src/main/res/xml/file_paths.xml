@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+	<!-- Usamos cacheDir en createImageUri(), por lo tanto declaramos cache-path -->
+	<cache-path name="images" path="." />
+	<!-- Si en el futuro guardas en externalCacheDir, añade:
+	<external-cache-path name="ext_images" path="." />
+	-->
+</paths>

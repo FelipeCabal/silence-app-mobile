@@ -1,0 +1,38 @@
+package com.example.silenceapp.data.remote.response
+
+import com.google.gson.JsonElement
+import com.google.gson.annotations.SerializedName
+
+data class ProfileResponse(
+	@SerializedName("_id") val id: String,
+	val nombre: String,
+	val email: String,
+	val fechaNto: String,
+	val sexo: String,
+	val pais: String,
+	val imagen: String?,
+	@SerializedName("ShowLikes") val showLikes: Boolean,
+	val publicaciones: List<JsonElement> = emptyList(),
+	val comunidades: List<JsonElement> = emptyList(),
+	val grupos: List<JsonElement> = emptyList(),
+	val solicitudesAmistad: List<FriendRequests> = emptyList(),
+	val likes: List<LikeResponse> = emptyList(),
+	val createdAt: String,
+	val updatedAt: String,
+	@SerializedName("__v") val v: Int
+)
+
+data class FriendRequests(
+	val enviadas: List<JsonElement> = emptyList(),
+	val recibidas: List<JsonElement> = emptyList()
+)
+
+data class LikeResponse(
+	@SerializedName("_id") val id: String,
+	val description: String,
+	val imagen: String?,
+	val cantLikes: Int,
+	val cantComentarios: Int,
+	val esAnonimo: Boolean,
+	val createdAt: String
+)
