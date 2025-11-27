@@ -3,16 +3,54 @@ package com.example.silenceapp.data.remote.service
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
+import com.example.silenceapp.data.remote.dto.ApiResponse
+import com.example.silenceapp.data.remote.dto.CommunityDto
+import com.example.silenceapp.data.remote.dto.CreateChatDto
+import com.example.silenceapp.data.remote.dto.CreateChatResponse
+import com.example.silenceapp.data.remote.dto.GroupDto
+// import com.example.silenceapp.data.remote.dto.PrivateChatDto // PENDIENTE - API no disponible
 import retrofit2.Response
 import retrofit2.http.*
 
 interface ChatService {
 
-    @GET("chats")
-    suspend fun getChats(
+    // ========== OBTENER CHATS ==========
+    
+    // PENDIENTE - API no disponible aún
+    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
+    /*
+    @GET("chat-privado")
+    suspend fun getPrivateChats(
         @Header("Authorization") token: String
-    ): Response<List<Chat>>
+    ): Response<ApiResponse<List<PrivateChatDto>>>
+    */
 
+    @GET("community")
+    suspend fun getCommunities(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<CommunityDto>>>
+
+    @GET("groups")
+    suspend fun getGroups(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<GroupDto>>>
+
+    // ========== CREAR CHATS ==========
+    
+    @POST("groups")
+    suspend fun createGroup(
+        @Header("Authorization") token: String,
+        @Body chatData: CreateChatDto
+    ): Response<CreateChatResponse>
+
+    @POST("community")
+    suspend fun createCommunity(
+        @Header("Authorization") token: String,
+        @Body chatData: CreateChatDto
+    ): Response<CreateChatResponse>
+
+    // ========== OPERACIONES DE CHAT ESPECÍFICO ==========
+    
     @GET("chats/{chatId}")
     suspend fun getChatById(
         @Header("Authorization") token: String,
@@ -36,44 +74,5 @@ interface ChatService {
     suspend fun deleteChat(
         @Header("Authorization") token: String,
         @Path("chatId") chatId: String
-    ): Response<Unit>
-
-    @GET("chats/{chatId}/messages")
-    suspend fun getMessages(
-        @Header("Authorization") token: String,
-        @Path("chatId") chatId: String
-    ): Response<List<Message>>
-
-    @POST("chats/{chatId}/messages")
-    suspend fun sendMessage(
-        @Header("Authorization") token: String,
-        @Path("chatId") chatId: String,
-        @Body message: Message
-    ): Response<Message>
-
-    @GET("chats/{chatId}/members")
-    suspend fun getChatMembers(
-        @Header("Authorization") token: String,
-        @Path("chatId") chatId: String
-    ): Response<List<Members>>
-
-    @POST("chats/{chatId}/members")
-    suspend fun addMember(
-        @Header("Authorization") token: String,
-        @Path("chatId") chatId: String,
-        @Body member: Members
-    ): Response<Members>
-
-    @DELETE("chats/{chatId}/members/{userId}")
-    suspend fun removeMember(
-        @Header("Authorization") token: String,
-        @Path("chatId") chatId: String,
-        @Path("userId") userId: String
-    ): Response<Unit>
-
-    @PATCH("messages/{messageId}/read")
-    suspend fun markMessageAsRead(
-        @Header("Authorization") token: String,
-        @Path("messageId") messageId: String
     ): Response<Unit>
 }

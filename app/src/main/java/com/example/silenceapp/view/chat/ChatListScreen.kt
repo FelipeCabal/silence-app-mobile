@@ -30,24 +30,38 @@ import com.example.silenceapp.ui.components.ChatItem
 import com.example.silenceapp.ui.theme.backgroundColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.secondaryColor
+import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.viewmodel.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatListScreen(
     navController: NavController,
-    chatViewModel: ChatViewModel = viewModel()
+    chatViewModel: ChatViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Todos", "Privados", "Grupos", "Comunidades")
     val profileImageUrl by remember { mutableStateOf<String?>(null) }
     
-    // Insertar chats de prueba al iniciar
-    LaunchedEffect(Unit) {
-        insertSampleChats(chatViewModel)
-    }
-    
+    val isLoading by chatViewModel.isLoading.collectAsState()
+    val error by chatViewModel.error.collectAsState()
     val allChats by chatViewModel.getAllChats().collectAsState(initial = emptyList())
+    
+    var hasSynced by remember { mutableStateOf(false) }
+    
+    // Sincronizar chats desde la API solo una vez
+    LaunchedEffect(Unit) {
+        if (!hasSynced) {
+            hasSynced = true
+            authViewModel.loadToken { token ->
+                if (token.isNotBlank()) {
+                    chatViewModel.syncAllChats(token) { success ->
+                    }
+                }
+            }
+        }
+    }
     
     // Filtrar chats según el tipo seleccionado
     val filteredChats = remember(selectedTab, allChats) {
@@ -149,58 +163,112 @@ fun ChatListScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Lista de chats
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (filteredChats.isEmpty()) {
-                // Estado vacío
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No hay chats",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = onBackgroundColor.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Toca + para iniciar una conversación",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = onBackgroundColor.copy(alpha = 0.4f)
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(filteredChats) { chat ->
-                        var unreadCount by remember { mutableStateOf(0) }
-                        
-                        // Obtener cantidad de mensajes no leídos
-                        LaunchedEffect(chat.id) {
-                            chatViewModel.getUnreadMessageCount(chat.id) { count ->
-                                unreadCount = count
-                            }
-                        }
-                        
-                        ChatItem(
-                            chat = chat,
-                            unreadCount = unreadCount,
-                            onClick = {
-                                // Navegar al chat individual
-                                // navController.navigate("chat/${chat.id}")
-                            }
+        // Mostrar error si hay
+        error?.let { errorMsg ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .background(Color.Red.copy(alpha = 0.1f), MaterialTheme.shapes.small)
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = errorMsg,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Red
+                )
+            }
+        }
+        
+        // Lista de chats con FAB
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+        ) {
+            when {
+                isLoading -> {
+                    // Estado de carga
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(color = secondaryColor)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Cargando chats...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onBackgroundColor.copy(alpha = 0.6f)
                         )
                     }
                 }
+                filteredChats.isEmpty() -> {
+                    // Estado vacío
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "No hay chats",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = onBackgroundColor.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Toca + para iniciar una conversación",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onBackgroundColor.copy(alpha = 0.4f)
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(
+                            items = filteredChats,
+                            key = { chat -> chat.id }
+                        ) { chat ->
+                            // TODO: Implementar caché de unreadCount si es necesario
+                            // Por ahora, no consultamos DB en cada item para mejor rendimiento
+                            ChatItem(
+                                chat = chat,
+                                unreadCount = 0, // Optimización: remover consulta DB costosa
+                                onClick = {
+                                    // Navegar al chat individual
+                                    // navController.navigate("chat/${chat.id}")
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // FAB flotante posicionado en la esquina inferior derecha
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("create-chat")
+                },
+                containerColor = secondaryColor,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Crear chat",
+                    tint = Color.Black
+                )
             }
         }
     }
 }
 
-// Función para insertar chats de prueba
-private fun insertSampleChats(chatViewModel: ChatViewModel) {
+// Función para insertar chats de prueba sin bloquear UI
+private fun insertSampleChatsAsync(chatViewModel: ChatViewModel) {
     val sampleChats = listOf(
         Chat(
             id = "1",

@@ -64,22 +64,12 @@ fun ChatItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar del chat
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE0E0E0)),
-                contentAlignment = Alignment.Center
-            ) {
-                // Placeholder para imagen
-                Text(
-                    text = chat.name.firstOrNull()?.uppercase() ?: "C",
-                    color = Color.Black,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            // Avatar del chat con imagen recortada
+            ChatImage(
+                imageUrl = chat.image,
+                chatName = chat.name,
+                size = 50.dp
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 

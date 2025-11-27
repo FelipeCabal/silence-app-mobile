@@ -6,12 +6,16 @@ import com.example.silenceapp.data.local.dao.MessageDao
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
+import com.example.silenceapp.data.remote.dto.CreateChatDto
+import com.example.silenceapp.data.remote.mapper.ChatMapper
+import com.example.silenceapp.data.remote.service.ChatService
 import kotlinx.coroutines.flow.Flow
 
 class ChatRepository(
     private val chatDao: ChatDao,
     private val messageDao: MessageDao,
-    private val membersDao: MembersDao
+    private val membersDao: MembersDao,
+    private val chatService: ChatService
 ) {
 
     // ============ CHAT OPERATIONS ============
@@ -74,6 +78,175 @@ class ChatRepository(
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    // ============ SYNC OPERATIONS FROM REMOTE ==========
+
+    // PENDIENTE - API no disponible aún
+    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
+    /*
+    /**
+     * Sincroniza chats privados desde el servidor
+     */
+    suspend fun syncPrivateChats(token: String, currentUserId: String): Result<List<Chat>> {
+        return try {
+            val response = chatService.getPrivateChats("Bearer $token")
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.error == false && apiResponse.data != null) {
+                    val chats = ChatMapper.fromPrivateChatDtoList(apiResponse.data, currentUserId)
+                    chatDao.insertChats(chats)
+                    Result.success(chats)
+                } else {
+                    Result.failure(Exception(apiResponse?.message ?: "Error desconocido"))
+                }
+            } else {
+                Result.failure(Exception("Error al sincronizar chats privados: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    */
+
+    /**
+     * Sincroniza comunidades desde el servidor
+     */
+    suspend fun syncCommunities(token: String): Result<List<Chat>> {
+        return try {
+            val response = chatService.getCommunities("Bearer $token")
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.error == false && apiResponse.data != null) {
+                    val chats = ChatMapper.fromCommunityDtoList(apiResponse.data)
+                    chatDao.insertChats(chats)
+                    Result.success(chats)
+                } else {
+                    Result.failure(Exception(apiResponse?.message ?: "Error desconocido"))
+                }
+            } else {
+                Result.failure(Exception("Error al sincronizar comunidades: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sincroniza grupos desde el servidor
+     */
+    suspend fun syncGroups(token: String): Result<List<Chat>> {
+        return try {
+            val response = chatService.getGroups("Bearer $token")
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.error == false && apiResponse.data != null) {
+                    val chats = ChatMapper.fromGroupDtoList(apiResponse.data)
+                    chatDao.insertChats(chats)
+                    Result.success(chats)
+                } else {
+                    Result.failure(Exception(apiResponse?.message ?: "Error desconocido"))
+                }
+            } else {
+                Result.failure(Exception("Error al sincronizar grupos: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sincroniza todos los chats disponibles (grupos y comunidades)
+     * NOTA: Chats privados omitidos - API no disponible aún
+     */
+    suspend fun syncAllChats(token: String): Result<Unit> {
+        return try {
+            // TODO: Descomentar cuando /chat-privado esté disponible
+            // val privateResult = syncPrivateChats(token, currentUserId)
+            
+            val communitiesResult = syncCommunities(token)
+            val groupsResult = syncGroups(token)
+
+            // Si alguna falla, devolver el error
+            when {
+                // privateResult.isFailure -> Result.failure(privateResult.exceptionOrNull()!!)
+                communitiesResult.isFailure -> Result.failure(communitiesResult.exceptionOrNull()!!)
+                groupsResult.isFailure -> Result.failure(groupsResult.exceptionOrNull()!!)
+                else -> Result.success(Unit)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ============ CREATE CHAT OPERATIONS ==========
+
+    /**
+     * Crea un nuevo grupo
+     */
+    suspend fun createGroup(token: String, nombre: String, descripcion: String, imagen: String): Result<String> {
+        return try {
+            val chatData = CreateChatDto(nombre, descripcion, imagen)
+            val response = chatService.createGroup("Bearer $token", chatData)
+            
+            if (response.isSuccessful) {
+                val createResponse = response.body()
+                if (createResponse?.error == false && createResponse.data != null) {
+                    // Insertar el chat localmente
+                    val newChat = Chat(
+                        id = createResponse.data.id,
+                        name = createResponse.data.nombre,
+                        type = "group",
+                        image = createResponse.data.imagen ?: "",
+                        description = createResponse.data.descripcion,
+                        lastMessageDate = System.currentTimeMillis().toString(),
+                        lastMessage = ""
+                    )
+                    chatDao.insertChat(newChat)
+                    Result.success(createResponse.data.id)
+                } else {
+                    Result.failure(Exception(createResponse?.message ?: "Error al crear grupo"))
+                }
+            } else {
+                Result.failure(Exception("Error al crear grupo: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Crea una nueva comunidad
+     */
+    suspend fun createCommunity(token: String, nombre: String, descripcion: String, imagen: String): Result<String> {
+        return try {
+            val chatData = CreateChatDto(nombre, descripcion, imagen)
+            val response = chatService.createCommunity("Bearer $token", chatData)
+            
+            if (response.isSuccessful) {
+                val createResponse = response.body()
+                if (createResponse?.error == false && createResponse.data != null) {
+                    // Insertar el chat localmente
+                    val newChat = Chat(
+                        id = createResponse.data.id,
+                        name = createResponse.data.nombre,
+                        type = "community",
+                        image = createResponse.data.imagen ?: "",
+                        description = createResponse.data.descripcion,
+                        lastMessageDate = System.currentTimeMillis().toString(),
+                        lastMessage = ""
+                    )
+                    chatDao.insertChat(newChat)
+                    Result.success(createResponse.data.id)
+                } else {
+                    Result.failure(Exception(createResponse?.message ?: "Error al crear comunidad"))
+                }
+            } else {
+                Result.failure(Exception("Error al crear comunidad: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

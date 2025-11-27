@@ -4,15 +4,18 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
+import com.example.silenceapp.data.remote.client.ApiClient
 import com.example.silenceapp.data.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -20,7 +23,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val chatDao = DatabaseProvider.getDatabase(application).chatDao()
     private val messageDao = DatabaseProvider.getDatabase(application).messageDao()
     private val membersDao = DatabaseProvider.getDatabase(application).membersDao()
-    private val repository = ChatRepository(chatDao, messageDao, membersDao)
+    private val chatService = ApiClient.chatService
+    private val repository = ChatRepository(chatDao, messageDao, membersDao, chatService)
+    private val authDataStore = AuthDataStore(application)
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -32,7 +37,206 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         private const val TAG = "ChatViewModel"
     }
 
+    // ============ SYNC OPERATIONS ============
+
+    /**
+     * Sincroniza todos los chats disponibles desde el servidor
+     * NOTA: Chats privados omitidos - API no disponible aún
+     */
+    fun syncAllChats(token: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.syncAllChats(token)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = {
+                    Log.d(TAG, "Grupos y comunidades sincronizados exitosamente")
+                    onResult(true)
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al sincronizar chats", exception)
+                    _error.value = exception.message
+                    onResult(false)
+                }
+            )
+        }
+    }
+
+    // PENDIENTE - API no disponible aún
+    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
+    /*
+    /**
+     * Sincroniza solo chats privados
+     */
+    fun syncPrivateChats(token: String, currentUserId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.syncPrivateChats(token, currentUserId)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chats ->
+                    Log.d(TAG, "${chats.size} chats privados sincronizados")
+                    onResult(true)
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al sincronizar chats privados", exception)
+                    _error.value = exception.message
+                    onResult(false)
+                }
+            )
+        }
+    }
+    */
+
+    /**
+     * Sincroniza solo comunidades
+     */
+    fun syncCommunities(token: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.syncCommunities(token)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chats ->
+                    Log.d(TAG, "${chats.size} comunidades sincronizadas")
+                    onResult(true)
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al sincronizar comunidades", exception)
+                    _error.value = exception.message
+                    onResult(false)
+                }
+            )
+        }
+    }
+
+    /**
+     * Sincroniza solo grupos
+     */
+    fun syncGroups(token: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.syncGroups(token)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chats ->
+                    Log.d(TAG, "${chats.size} grupos sincronizados")
+                    onResult(true)
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al sincronizar grupos", exception)
+                    _error.value = exception.message
+                    onResult(false)
+                }
+            )
+        }
+    }
+
     // ============ CHAT OPERATIONS ============
+
+    /**
+     * Crea un nuevo grupo
+     */
+    fun createGroup(token: String, nombre: String, descripcion: String, imagen: String, onResult: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.createGroup(token, nombre, descripcion, imagen)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chatId ->
+                    Log.d(TAG, "Grupo creado exitosamente: $chatId")
+                    onResult(Result.success(chatId))
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al crear grupo", exception)
+                    _error.value = exception.message
+                    onResult(Result.failure(exception))
+                }
+            )
+        }
+    }
+
+    /**
+     * Crea una nueva comunidad
+     */
+    fun createCommunity(token: String, nombre: String, descripcion: String, imagen: String, onResult: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.createCommunity(token, nombre, descripcion, imagen)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chatId ->
+                    Log.d(TAG, "Comunidad creada exitosamente: $chatId")
+                    onResult(Result.success(chatId))
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al crear comunidad", exception)
+                    _error.value = exception.message
+                    onResult(Result.failure(exception))
+                }
+            )
+        }
+    }
+
+    /**
+     * Crea un nuevo grupo manejando la autenticación internamente
+     */
+    fun createGroupWithAuth(nombre: String, descripcion: String, imagen: String, onResult: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            val token = authDataStore.getToken().first()
+            if (token.isBlank()) {
+                _error.value = "No se encontró token de autenticación"
+                onResult(Result.failure(Exception("No autenticado")))
+                return@launch
+            }
+            createGroup(token, nombre, descripcion, imagen, onResult)
+        }
+    }
+
+    /**
+     * Crea una nueva comunidad manejando la autenticación internamente
+     */
+    fun createCommunityWithAuth(nombre: String, descripcion: String, imagen: String, onResult: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            val token = authDataStore.getToken().first()
+            if (token.isBlank()) {
+                _error.value = "No se encontró token de autenticación"
+                onResult(Result.failure(Exception("No autenticado")))
+                return@launch
+            }
+            createCommunity(token, nombre, descripcion, imagen, onResult)
+        }
+    }
 
     fun getAllChats(): Flow<List<Chat>> {
         return repository.getAllChats()
@@ -48,11 +252,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun insertChat(chat: Chat, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            _isLoading.value = true
+            // No activar isLoading para operaciones locales rápidas
             val success = withContext(Dispatchers.IO) {
                 repository.insertChat(chat)
             }
-            _isLoading.value = false
             if (success) {
                 Log.d(TAG, "Chat insertado exitosamente: ${chat.id}")
             } else {
@@ -64,11 +267,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun insertChats(chats: List<Chat>, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            _isLoading.value = true
+            // No activar isLoading para no bloquear UI con datos de prueba
             val success = withContext(Dispatchers.IO) {
                 repository.insertChats(chats)
             }
-            _isLoading.value = false
             if (success) {
                 Log.d(TAG, "${chats.size} chats insertados exitosamente")
             } else {

@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.chat.ChatListScreen
+import com.example.silenceapp.view.chat.CreateChatScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.posts.PostScreen
 import com.example.silenceapp.view.testingView.TestingViews
@@ -44,7 +45,7 @@ fun NavGraph(navController: NavHostController) {
 
 
     if (isAuthenticated == null) {
-        Box(modifier = androidx.compose.ui.Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         
@@ -61,7 +62,7 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats") && 
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats", "create-chat") &&
                      !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
@@ -140,7 +141,19 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    ChatListScreen(navController)
+                    ChatListScreen(navController, authViewModel = authViewModel)
+                }
+            }
+            composable("create-chat") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("create-chat") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    CreateChatScreen(navController, authViewModel = authViewModel)
                 }
             }
             composable("home") {
