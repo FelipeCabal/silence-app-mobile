@@ -13,13 +13,9 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["chatId"],
             onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = UserEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["userId"],
-            onDelete = ForeignKey.CASCADE
         )
+        // Foreign key de userId removida temporalmente por incompatibilidad de tipos
+        // UserEntity.id es Int, pero Message.userId es String
     ],
     indices = [Index("chatId"), Index("userId")]
 )

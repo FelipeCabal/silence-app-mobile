@@ -4,15 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.chat.ChatListScreen
+import com.example.silenceapp.view.chat.ChatScreen
 import com.example.silenceapp.view.chat.CreateChatScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.posts.PostScreen
@@ -24,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavType
 import com.example.silenceapp.viewmodel.UserViewModel
 import com.example.silenceapp.viewmodel.PostViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,6 +42,9 @@ import com.example.silenceapp.view.home.HomeScreen
 @Composable
 fun NavGraph(navController: NavHostController) {
 
+    val context = LocalContext.current
+    val authDataStore = remember { AuthDataStore(context) }
+    
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
@@ -63,7 +71,8 @@ fun NavGraph(navController: NavHostController) {
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
     val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats", "create-chat") &&
-                     !(currentRoute?.startsWith("add-post") ?: false)
+                     !(currentRoute?.startsWith("add-post") ?: false) &&
+                     !(currentRoute?.startsWith("chat/") ?: false)
 
     Scaffold(
         topBar = {
@@ -156,6 +165,34 @@ fun NavGraph(navController: NavHostController) {
                     CreateChatScreen(navController, authViewModel = authViewModel)
                 }
             }
+            
+            // Ruta para ChatScreen individual
+            composable(
+                route = "chat/{chatId}/{chatName}/{chatType}",
+                arguments = listOf(
+                    navArgument("chatId") { type = NavType.StringType },
+                    navArgument("chatName") { type = NavType.StringType },
+                    navArgument("chatType") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("chat/{chatId}/{chatName}/{chatType}") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ChatScreen(
+                        chatId = backStackEntry.arguments?.getString("chatId") ?: "",
+                        chatName = backStackEntry.arguments?.getString("chatName") ?: "",
+                        chatType = backStackEntry.arguments?.getString("chatType") ?: "group",
+                        navController = navController,
+                        authDataStore = authDataStore
+                    )
+                }
+            }
+            
             composable("home") {
                 if (isAuthenticated != true) {
                     LaunchedEffect(Unit) {

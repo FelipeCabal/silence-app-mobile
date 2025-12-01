@@ -4,6 +4,7 @@ import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
 import com.example.silenceapp.data.remote.dto.ApiResponse
+import com.example.silenceapp.data.remote.dto.ChatMessagesResponse
 import com.example.silenceapp.data.remote.dto.CommunityDto
 import com.example.silenceapp.data.remote.dto.CreateChatDto
 import com.example.silenceapp.data.remote.dto.CreateChatResponse
@@ -52,10 +53,13 @@ interface ChatService {
     // ========== OPERACIONES DE CHAT ESPECÍFICO ==========
     
     @GET("chats/{chatId}")
-    suspend fun getChatById(
+    suspend fun getChatMessages(
         @Header("Authorization") token: String,
-        @Path("chatId") chatId: String
-    ): Response<Chat>
+        @Path("chatId") chatId: String,
+        @Query("chatType") chatType: String,
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null
+    ): Response<ChatMessagesResponse>
 
     @POST("chats")
     suspend fun createChat(

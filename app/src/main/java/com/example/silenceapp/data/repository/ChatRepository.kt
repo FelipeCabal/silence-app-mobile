@@ -9,14 +9,310 @@ import com.example.silenceapp.data.local.entity.Message
 import com.example.silenceapp.data.remote.dto.CreateChatDto
 import com.example.silenceapp.data.remote.mapper.ChatMapper
 import com.example.silenceapp.data.remote.service.ChatService
+import com.example.silenceapp.data.remote.socket.ChatType
+import com.example.silenceapp.data.remote.socket.ConnectionState
+import com.example.silenceapp.data.remote.socket.SocketEvent
+import com.example.silenceapp.data.remote.socket.SocketIOManager
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import android.util.Log
 
 class ChatRepository(
     private val chatDao: ChatDao,
     private val messageDao: MessageDao,
     private val membersDao: MembersDao,
-    private val chatService: ChatService
+    private val chatService: ChatService,
+    private val socketIOManager: SocketIOManager
 ) {
+    
+    companion object {
+        private const val TAG = "ChatRepository"
+    }
+
+    // ============ SOCKET.IO OBSERVABLES ============
+    
+    /**
+     * Observable del estado de conexión Socket.IO
+     */
+    val socketConnectionState: StateFlow<ConnectionState> = socketIOManager.connectionState
+    
+    /**
+     * Observable de eventos Socket.IO
+     */
+    val socketEvents: SharedFlow<SocketEvent> = socketIOManager.chatEvents
+
+    // ============ SOCKET.IO CONNECTION ============
+    
+    /**
+     * Conecta al servidor Socket.IO con el token JWT
+     */
+    fun connectSocket(token: String) {
+        Log.d(TAG, "🔌 Conectando Socket.IO...")
+        socketIOManager.connectToChats(token)
+    }
+    
+    /**
+     * Desconecta del servidor Socket.IO
+     */
+    fun disconnectSocket() {
+        Log.d(TAG, "🔌 Desconectando Socket.IO...")
+        socketIOManager.disconnect()
+    }
+    
+    /**
+     * Verifica si está conectado
+     */
+    fun isSocketConnected(): Boolean {
+        return socketIOManager.isConnected()
+    }
+
+    // ============ SOCKET.IO CHAT ACTIONS ============
+    
+    /**
+     * Unirse a un chat mediante Socket.IO
+     */
+    fun joinChatRoom(chatId: String, chatType: String) {
+        Log.d(TAG, "🚪 Uniéndose a chat: $chatId ($chatType)")
+        val type = when (chatType.lowercase()) {
+            "private" -> ChatType.PRIVATE
+            "group" -> ChatType.GROUP
+            "community" -> ChatType.COMMUNITY
+            else -> ChatType.GROUP
+        }
+        socketIOManager.joinChat(chatId, type)
+    }
+    
+    /**
+     * Salir de un chat mediante Socket.IO
+     */
+    fun leaveChatRoom(chatId: String, chatType: String) {
+        Log.d(TAG, "👋 Saliendo de chat: $chatId ($chatType)")
+        val type = when (chatType.lowercase()) {
+            "private" -> ChatType.PRIVATE
+            "group" -> ChatType.GROUP
+            "community" -> ChatType.COMMUNITY
+            else -> ChatType.GROUP
+        }
+        socketIOManager.leaveChat(chatId, type)
+    }
+    
+    /**
+     * Enviar mensaje mediante Socket.IO (con actualización optimista)
+     * 1. Primero guarda en Room
+     * 2. Luego emite al servidor
+     */
+    suspend fun sendMessageViaSocket(
+        chatId: String,
+        content: String,
+        chatType: String,
+        userId: String
+    ): Result<Message> {
+        return try {
+            Log.d(TAG, "💬 Enviando mensaje vía Socket.IO...")
+            
+            // 1. Verificar si el chat existe en Room
+            val chatExists = chatDao.getChatById(chatId) != null
+            Log.d(TAG, "🔍 Chat existe en Room: $chatExists")
+            
+            if (!chatExists) {
+                Log.d(TAG, "⚠️ Chat no existe en Room, creando placeholder...")
+                // Crear un chat placeholder para cumplir con la foreign key
+                val placeholderChat = Chat(
+                    id = chatId,
+                    name = "Chat",
+                    type = chatType,
+                    image = "",
+                    description = "",
+                    lastMessageDate = System.currentTimeMillis().toString(),
+                    lastMessage = ""
+                )
+                chatDao.insertChat(placeholderChat)
+                Log.d(TAG, "✅ Chat placeholder creado")
+            }
+            
+            // 2. Crear mensaje local (actualización optimista)
+            val localMessage = Message(
+                id = "temp_${System.currentTimeMillis()}", // ID temporal
+                chatId = chatId,
+                content = content,
+                userId = userId,
+                timestamp = System.currentTimeMillis(),
+                type = "text",
+                isRead = false
+            )
+            
+            // 3. Guardar en Room
+            messageDao.insertMessage(localMessage)
+            updateChatLastMessage(chatId, localMessage)
+            Log.d(TAG, "✅ Mensaje guardado localmente: ${localMessage.id}")
+            
+            // 3. Emitir al servidor vía Socket.IO
+            val type = when (chatType.lowercase()) {
+                "private" -> ChatType.PRIVATE
+                "group" -> ChatType.GROUP
+                "community" -> ChatType.COMMUNITY
+                else -> ChatType.GROUP
+            }
+            socketIOManager.sendMessage(chatId, content, type)
+            Log.d(TAG, "📡 Mensaje emitido al servidor")
+            
+            Result.success(localMessage)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error al enviar mensaje", e)
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Actualizar mensaje local cuando llega confirmación del servidor
+     */
+    suspend fun updateMessageWithServerId(tempId: String, serverId: String): Boolean {
+        return try {
+            messageDao.getMessageById(tempId)?.let { message ->
+                val updatedMessage = message.copy(id = serverId)
+                messageDao.deleteMessage(message) // Eliminar temp
+                messageDao.insertMessage(updatedMessage) // Insertar con ID real
+                Log.d(TAG, "✅ Mensaje actualizado: $tempId -> $serverId")
+                true
+            } ?: false
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error al actualizar mensaje", e)
+            false
+        }
+    }
+    
+    /**
+     * Enviar indicador de escritura
+     */
+    fun sendTypingIndicator(chatId: String, chatType: String, isTyping: Boolean) {
+        val type = when (chatType.lowercase()) {
+            "private" -> ChatType.PRIVATE
+            "group" -> ChatType.GROUP
+            "community" -> ChatType.COMMUNITY
+            else -> ChatType.GROUP
+        }
+        socketIOManager.setTyping(chatId, type, isTyping)
+    }
+    
+    /**
+     * Marcar mensajes como leídos vía Socket.IO
+     */
+    suspend fun markMessagesAsReadViaSocket(chatId: String, chatType: String, messageIds: List<String>): Boolean {
+        return try {
+            // 1. Actualizar en Room
+            messageIds.forEach { messageId ->
+                messageDao.getMessageById(messageId)?.let { message ->
+                    messageDao.updateMessage(message.copy(isRead = true))
+                }
+            }
+            
+            // 2. Notificar al servidor
+            val type = when (chatType.lowercase()) {
+                "private" -> ChatType.PRIVATE
+                "group" -> ChatType.GROUP
+                "community" -> ChatType.COMMUNITY
+                else -> ChatType.GROUP
+            }
+            socketIOManager.markAsRead(chatId, type, messageIds)
+            Log.d(TAG, "✅ Mensajes marcados como leídos: ${messageIds.size}")
+            
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error al marcar mensajes como leídos", e)
+            false
+        }
+    }
+    
+    /**
+     * Sincronizar mensajes del servidor (cargar chat con mensajes embebidos)
+     */
+    suspend fun syncMessagesFromServer(chatId: String, chatType: String, token: String): Result<List<Message>> {
+        return try {
+            Log.d(TAG, "🔄 Sincronizando mensajes del servidor para chat: $chatId, tipo: $chatType")
+            Log.d(TAG, "🔑 Token: ${token.take(20)}...")
+            
+            // Llamar al endpoint con chatType como query parameter
+            val response = chatService.getChatMessages(
+                token = "Bearer $token",
+                chatId = chatId,
+                chatType = chatType
+            )
+            
+            Log.d(TAG, "📡 Response code: ${response.code()}")
+            Log.d(TAG, "📡 Response successful: ${response.isSuccessful}")
+            Log.d(TAG, "📡 Response body null: ${response.body() == null}")
+            
+            if (response.isSuccessful && response.body() != null) {
+                val messagesResponse = response.body()!!
+                Log.d(TAG, "📦 Response recibido: chatId=${messagesResponse.chatId}, chatType=${messagesResponse.chatType}")
+                Log.d(TAG, "📦 Total de mensajes: ${messagesResponse.total}")
+                Log.d(TAG, "📦 Mensajes en respuesta: ${messagesResponse.messages.size}")
+                
+                val messages = mutableListOf<Message>()
+                
+                // Convertir mensajes del DTO a entidades Room
+                messagesResponse.messages.forEachIndexed { index, messageDto ->
+                    val contentPreview = messageDto.content?.take(30) ?: "[sin contenido]"
+                    Log.d(TAG, "📨 Mensaje $index: id=${messageDto.id}, content='$contentPreview', userId=${messageDto.userId}")
+                    
+                    // Validar que el mensaje tenga datos mínimos requeridos
+                    if (messageDto.userId == null) {
+                        Log.w(TAG, "⚠️ Mensaje ${messageDto.id} no tiene userId, se omite")
+                        return@forEachIndexed
+                    }
+                    
+                    // Convertir fecha ISO 8601 a timestamp Long
+                    val timestampLong = try {
+                        java.time.Instant.parse(messageDto.timestamp).toEpochMilli()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "⚠️ Error al parsear fecha: ${messageDto.timestamp}, usando timestamp actual")
+                        System.currentTimeMillis()
+                    }
+                    
+                    val message = Message(
+                        id = messageDto.id,
+                        chatId = chatId,
+                        userId = messageDto.userId,
+                        content = messageDto.content ?: "",
+                        timestamp = timestampLong,
+                        type = messageDto.type ?: "text",
+                        isRead = messageDto.isRead
+                    )
+                    messages.add(message)
+                    
+                    // Guardar en Room (insert or replace)
+                    messageDao.insertMessage(message)
+                    Log.d(TAG, "💾 Mensaje guardado en Room: ${message.id}")
+                }
+                
+                Log.d(TAG, "✅ ${messages.size} mensajes sincronizados desde el servidor")
+                Result.success(messages)
+            } else {
+                val errorBody = response.errorBody()?.string() ?: "Sin detalles"
+                val error = "Error al cargar mensajes: ${response.code()} - $errorBody"
+                Log.e(TAG, error)
+                Result.failure(Exception(error))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error al sincronizar mensajes", e)
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Obtener usuarios activos en un chat
+     */
+    fun getActiveUsers(chatId: String, chatType: String) {
+        val type = when (chatType.lowercase()) {
+            "private" -> ChatType.PRIVATE
+            "group" -> ChatType.GROUP
+            "community" -> ChatType.COMMUNITY
+            else -> ChatType.GROUP
+        }
+        socketIOManager.getActiveUsers(chatId, type) {}
+    }
 
     // ============ CHAT OPERATIONS ============
     

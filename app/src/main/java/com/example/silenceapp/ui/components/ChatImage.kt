@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.silenceapp.BuildConfig
 import com.example.silenceapp.R
 
 /**
@@ -39,9 +40,16 @@ fun ChatImage(
         contentAlignment = Alignment.Center
     ) {
         if (!imageUrl.isNullOrBlank() && imageUrl != "null" && imageUrl != "") {
+            // Construir URL completa si la imagen es una ruta relativa
+            val fullImageUrl = if (imageUrl.startsWith("http")) {
+                imageUrl
+            } else {
+                "${BuildConfig.BASE_URL.removeSuffix("/")}$imageUrl"
+            }
+            
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
+                    .data(fullImageUrl)
                     .crossfade(true)
                     .placeholder(R.drawable.avatar_placeholder)
                     .error(R.drawable.avatar_placeholder)

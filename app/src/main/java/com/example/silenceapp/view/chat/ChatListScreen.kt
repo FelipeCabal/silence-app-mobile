@@ -30,6 +30,7 @@ import com.example.silenceapp.ui.components.ChatItem
 import com.example.silenceapp.ui.theme.backgroundColor
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.secondaryColor
+import com.example.silenceapp.view.chat.components.ConnectionIndicator
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.viewmodel.ChatViewModel
 
@@ -47,8 +48,18 @@ fun ChatListScreen(
     val isLoading by chatViewModel.isLoading.collectAsState()
     val error by chatViewModel.error.collectAsState()
     val allChats by chatViewModel.getAllChats().collectAsState(initial = emptyList())
+    val connectionState by chatViewModel.socketConnectionState.collectAsState()
     
     var hasSynced by remember { mutableStateOf(false) }
+    var hasConnectedSocket by remember { mutableStateOf(false) }
+    
+    // Conectar Socket.IO una vez
+    LaunchedEffect(Unit) {
+        if (!hasConnectedSocket) {
+            hasConnectedSocket = true
+            chatViewModel.connectSocket()
+        }
+    }
     
     // Sincronizar chats desde la API solo una vez
     LaunchedEffect(Unit) {
@@ -103,6 +114,11 @@ fun ChatListScreen(
                     color = onBackgroundColor,
                     fontWeight = FontWeight.Bold
                 )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                // Indicador de conexión Socket.IO
+                ConnectionIndicator(state = connectionState)
             }
             
             AsyncImage(
@@ -163,24 +179,6 @@ fun ChatListScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Mostrar error si hay
-        error?.let { errorMsg ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .background(Color.Red.copy(alpha = 0.1f), MaterialTheme.shapes.small)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = errorMsg,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Red
-                )
-            }
-        }
-        
         // Lista de chats con FAB
         Box(
             modifier = Modifier
@@ -238,8 +236,8 @@ fun ChatListScreen(
                                 chat = chat,
                                 unreadCount = 0, // Optimización: remover consulta DB costosa
                                 onClick = {
-                                    // Navegar al chat individual
-                                    // navController.navigate("chat/${chat.id}")
+                                    // Navegar al chat individual con Socket.IO
+                                    navController.navigate("chat/${chat.id}/${chat.name}/${chat.type}")
                                 }
                             )
                         }

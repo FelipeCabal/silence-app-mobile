@@ -4,12 +4,16 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.silenceapp.BuildConfig
 import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
 import com.example.silenceapp.data.remote.client.ApiClient
+import com.example.silenceapp.data.remote.socket.ConnectionState
+import com.example.silenceapp.data.remote.socket.SocketEvent
+import com.example.silenceapp.data.remote.socket.SocketIOManager
 import com.example.silenceapp.data.repository.ChatRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +28,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val messageDao = DatabaseProvider.getDatabase(application).messageDao()
     private val membersDao = DatabaseProvider.getDatabase(application).membersDao()
     private val chatService = ApiClient.chatService
-    private val repository = ChatRepository(chatDao, messageDao, membersDao, chatService)
+    
+    // Socket.IO Manager - Usar la instancia única (Singleton)
+    private val socketIOManager = SocketIOManager.getInstance(BuildConfig.BASE_URL)
+    private val repository = ChatRepository(chatDao, messageDao, membersDao, chatService, socketIOManager)
+    
     private val authDataStore = AuthDataStore(application)
 
     private val _isLoading = MutableStateFlow(false)
@@ -32,9 +40,314 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+    
+    // ============ SOCKET.IO STATE ============
+    
+    /**
+     * Estado de conexión Socket.IO
+     */
+    val socketConnectionState: StateFlow<ConnectionState> = repository.socketConnectionState
+    
+    /**
+     * Usuarios escribiendo por chat
+     * Map<chatId, Set<userId>>
+     */
+    private val _typingUsers = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val typingUsers: StateFlow<Map<String, Set<String>>> = _typingUsers
+    
+    /**
+     * Usuarios activos en el chat actual
+     */
+    private val _activeUsers = MutableStateFlow<Set<String>>(emptySet())
+    val activeUsers: StateFlow<Set<String>> = _activeUsers
+    
+    /**
+     * ID del chat actual (para manejar eventos)
+     */
+    private var currentChatId: String? = null
 
     companion object {
         private const val TAG = "ChatViewModel"
+    }
+    
+    init {
+        // Observar eventos Socket.IO
+        observeSocketEvents()
+    }
+    
+    // ============ SOCKET.IO OPERATIONS ============
+    
+    /**
+     * Conectar a Socket.IO usando el token almacenado
+     */
+    fun connectSocket() {
+        viewModelScope.launch {
+            try {
+                var token = authDataStore.getToken().first()
+                
+                Log.d(TAG, "🔑 Token RAW del DataStore: '${token.take(30)}...'")
+                Log.d(TAG, "🔑 Token length original: ${token.length}")
+                Log.d(TAG, "🔑 ¿Empieza con 'Bearer '? ${token.startsWith("Bearer ")}")
+                Log.d(TAG, "🔑 ¿Empieza con 'Bearer'? ${token.startsWith("Bearer")}")
+                
+                // Limpiar el token: remover "Bearer " o "Bearer" si existe
+                token = token.trim()
+                    .removePrefix("Bearer ")
+                    .removePrefix("Bearer")
+                    .trim()
+                
+                Log.d(TAG, "🔑 Token LIMPIO: '${token.take(30)}...'")
+                Log.d(TAG, "🔑 Token length limpio: ${token.length}")
+                
+                if (token.isNotBlank()) {
+                    Log.d(TAG, "🔌 Conectando Socket.IO con token limpio...")
+                    repository.connectSocket(token)
+                } else {
+                    Log.e(TAG, "❌ No hay token disponible para conectar Socket.IO")
+                    _error.value = "No autenticado"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error al conectar Socket.IO", e)
+                _error.value = e.message
+            }
+        }
+    }
+    
+    /**
+     * Desconectar de Socket.IO
+     */
+    fun disconnectSocket() {
+        Log.d(TAG, "🔌 Desconectando Socket.IO...")
+        repository.disconnectSocket()
+    }
+    
+    /**
+     * Unirse a un chat room
+     */
+    fun joinChatRoom(chatId: String, chatType: String) {
+        currentChatId = chatId
+        Log.d(TAG, "🚪 Uniéndose a chat: $chatId")
+        repository.joinChatRoom(chatId, chatType)
+        
+        // Solicitar usuarios activos
+        repository.getActiveUsers(chatId, chatType)
+    }
+    
+    /**
+     * Sincronizar mensajes del servidor al entrar al chat
+     */
+    fun syncChatMessages(chatId: String, chatType: String, onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "🔄 Sincronizando mensajes del chat: $chatId, tipo: $chatType")
+                val token = authDataStore.getToken().first()
+                
+                if (token.isBlank()) {
+                    Log.e(TAG, "❌ Token vacío, no se pueden sincronizar mensajes")
+                    onComplete(false)
+                    return@launch
+                }
+                
+                val result = withContext(Dispatchers.IO) {
+                    repository.syncMessagesFromServer(chatId, chatType, token)
+                }
+                
+                result.fold(
+                    onSuccess = { messages ->
+                        Log.d(TAG, "✅ ${messages.size} mensajes sincronizados")
+                        onComplete(true)
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "❌ Error al sincronizar mensajes", exception)
+                        onComplete(false)
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error en syncChatMessages", e)
+                onComplete(false)
+            }
+        }
+    }
+    
+    /**
+     * Salir de un chat room
+     */
+    fun leaveChatRoom(chatId: String, chatType: String) {
+        if (currentChatId == chatId) {
+            currentChatId = null
+        }
+        Log.d(TAG, "👋 Saliendo de chat: $chatId")
+        repository.leaveChatRoom(chatId, chatType)
+    }
+    
+    /**
+     * Enviar mensaje vía Socket.IO (actualización optimista)
+     */
+    fun sendMessage(chatId: String, content: String, chatType: String, onResult: (Boolean) -> Unit) {
+        Log.d(TAG, "🎯 INICIO sendMessage - chatId=$chatId, mensaje='${content.take(50)}', tipo=$chatType")
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "💬 Dentro de coroutine, obteniendo userId...")
+                val userId = authDataStore.getUserId().first()
+                Log.d(TAG, "👤 userId obtenido: $userId")
+                if (userId.isBlank()) {
+                    _error.value = "Usuario no autenticado"
+                    onResult(false)
+                    return@launch
+                }
+                
+                val result = withContext(Dispatchers.IO) {
+                    repository.sendMessageViaSocket(chatId, content, chatType, userId)
+                }
+                
+                result.fold(
+                    onSuccess = { message ->
+                        Log.d(TAG, "✅ Mensaje enviado: ${message.id}")
+                        onResult(true)
+                    },
+                    onFailure = { exception ->
+                        Log.e(TAG, "❌ Error al enviar mensaje", exception)
+                        _error.value = exception.message
+                        onResult(false)
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error al enviar mensaje", e)
+                _error.value = e.message
+                onResult(false)
+            }
+        }
+    }
+    
+    /**
+     * Enviar indicador de escritura
+     */
+    fun setTyping(chatId: String, chatType: String, isTyping: Boolean) {
+        repository.sendTypingIndicator(chatId, chatType, isTyping)
+    }
+    
+    /**
+     * Marcar mensajes como leídos
+     */
+    fun markMessagesAsRead(chatId: String, chatType: String, messageIds: List<String>, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                repository.markMessagesAsReadViaSocket(chatId, chatType, messageIds)
+            }
+            onResult(success)
+        }
+    }
+    
+    /**
+     * Observar eventos Socket.IO
+     */
+    private fun observeSocketEvents() {
+        viewModelScope.launch {
+            repository.socketEvents.collect { event ->
+                handleSocketEvent(event)
+            }
+        }
+    }
+    
+    /**
+     * Manejar eventos Socket.IO entrantes
+     */
+    private suspend fun handleSocketEvent(event: SocketEvent) {
+        when (event) {
+            is SocketEvent.Connected -> {
+                Log.d(TAG, "✅ Conectado: userId=${event.userId}, socketId=${event.socketId}")
+            }
+            
+            is SocketEvent.JoinedChat -> {
+                Log.d(TAG, "✅ Unido a chat: ${event.chatId}")
+            }
+            
+            is SocketEvent.MessageReceived -> {
+                Log.d(TAG, "💬 Mensaje recibido: ${event.message._id}")
+                
+                // Guardar mensaje en Room
+                withContext(Dispatchers.IO) {
+                    val message = Message(
+                        id = event.message._id,
+                        chatId = event.message.chatId,
+                        content = event.message.content,
+                        userId = event.message.userId,
+                        timestamp = event.message.timestamp,
+                        type = event.message.type,
+                        isRead = event.message.isRead
+                    )
+                    repository.insertMessage(message)
+                }
+            }
+            
+            is SocketEvent.UserJoined -> {
+                Log.d(TAG, "👋 Usuario unido: ${event.userId}")
+                // Actualizar lista de usuarios activos
+                _activeUsers.value = _activeUsers.value + event.userId
+            }
+            
+            is SocketEvent.UserLeft -> {
+                Log.d(TAG, "👋 Usuario salió: ${event.userId}")
+                // Remover de usuarios activos
+                _activeUsers.value = _activeUsers.value - event.userId
+                
+                // Remover de usuarios escribiendo
+                _typingUsers.value = _typingUsers.value.mapValues { (_, users) ->
+                    users - event.userId
+                }.filterValues { it.isNotEmpty() }
+            }
+            
+            is SocketEvent.UserTyping -> {
+                Log.d(TAG, "⌨️ Usuario escribiendo: ${event.userId} = ${event.isTyping}")
+                
+                val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
+                _typingUsers.value = _typingUsers.value.toMutableMap().apply {
+                    if (event.isTyping) {
+                        put(event.chatId, currentUsers + event.userId)
+                    } else {
+                        put(event.chatId, currentUsers - event.userId)
+                        if (get(event.chatId)?.isEmpty() == true) {
+                            remove(event.chatId)
+                        }
+                    }
+                }
+            }
+            
+            is SocketEvent.MessagesRead -> {
+                Log.d(TAG, "✅ Mensajes leídos: ${event.messageIds?.size ?: 0}")
+                
+                // Actualizar mensajes en Room
+                event.messageIds?.let { ids ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        ids.forEach { messageId ->
+                            messageDao.getMessageById(messageId)?.let { message ->
+                                messageDao.updateMessage(message.copy(isRead = true))
+                            }
+                        }
+                    }
+                }
+            }
+            
+            is SocketEvent.ActiveUsersResponse -> {
+                Log.d(TAG, "👥 Usuarios activos: ${event.activeUsers.size}")
+                _activeUsers.value = event.activeUsers.toSet()
+            }
+            
+            is SocketEvent.Disconnected -> {
+                Log.d(TAG, "❌ Desconectado")
+                _activeUsers.value = emptySet()
+                _typingUsers.value = emptyMap()
+            }
+            
+            is SocketEvent.Error -> {
+                Log.e(TAG, "❌ Error Socket.IO [${event.event}]: ${event.message}")
+                _error.value = event.message
+            }
+            
+            else -> {
+                Log.d(TAG, "📡 Evento no manejado: ${event::class.simpleName}")
+            }
+        }
     }
 
     // ============ SYNC OPERATIONS ============
