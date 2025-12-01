@@ -263,20 +263,61 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
             
             is SocketEvent.MessageReceived -> {
-                Log.d(TAG, "💬 Mensaje recibido: ${event.message._id}")
+                Log.d(TAG, "💬 Mensaje recibido de Socket.IO:")
+                Log.d(TAG, "   - ID: ${event.message._id}")
+                Log.d(TAG, "   - De userId: ${event.message.userId}")
+                Log.d(TAG, "   - Contenido: ${event.message.content.take(50)}")
+                Log.d(TAG, "   - ChatId: ${event.message.chatId}")
                 
-                // Guardar mensaje en Room
-                withContext(Dispatchers.IO) {
-                    val message = Message(
-                        id = event.message._id,
-                        chatId = event.message.chatId,
-                        content = event.message.content,
-                        userId = event.message.userId,
-                        timestamp = event.message.timestamp,
-                        type = event.message.type,
-                        isRead = event.message.isRead
-                    )
-                    repository.insertMessage(message)
+                // Obtener userId actual para no duplicar mensajes propios
+                val currentUserId = authDataStore.getUserId().first()
+                Log.d(TAG, "   - Mi userId: $currentUserId")
+                
+                // Solo guardar si NO es mi propio mensaje (los propios ya se guardan optimísticamente)
+                if (event.message.userId != currentUserId) {
+                    Log.d(TAG, "✅ Es mensaje de otro usuario, guardando en Room...")
+                    
+                    // Verificar que el chat existe
+                    withContext(Dispatchers.IO) {
+                        val chatExists = chatDao.getChatById(event.message.chatId) != null
+                        if (!chatExists) {
+                            Log.w(TAG, "⚠️ Chat no existe, creando placeholder...")
+                            val placeholderChat = Chat(
+                                id = event.message.chatId,
+                                name = "Chat",
+                                type = event.chatType.toString().lowercase(),
+                                image = "",
+                                description = "",
+                                lastMessageDate = System.currentTimeMillis().toString(),
+                                lastMessage = ""
+                            )
+                            chatDao.insertChat(placeholderChat)
+                        }
+                        
+                        // Guardar mensaje
+                        val message = Message(
+                            id = event.message._id,
+                            chatId = event.message.chatId,
+                            content = event.message.content,
+                            userId = event.message.userId,
+                            timestamp = event.message.timestamp,
+                            type = event.message.type,
+                            isRead = false, // Marcar como no leído inicialmente
+                        )
+                        messageDao.insertMessage(message)
+                        Log.d(TAG, "💾 Mensaje guardado en Room: ${message.id}")
+                        
+                        // Actualizar último mensaje del chat
+                        chatDao.getChatById(event.message.chatId)?.let { chat ->
+                            val updatedChat = chat.copy(
+                                lastMessage = message.content,
+                                lastMessageDate = message.timestamp.toString()
+                            )
+                            chatDao.updateChat(updatedChat)
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "⚠️ Es mi propio mensaje, ignorando (ya guardado optimisticamente)")
                 }
             }
             
@@ -300,16 +341,22 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             is SocketEvent.UserTyping -> {
                 Log.d(TAG, "⌨️ Usuario escribiendo: ${event.userId} = ${event.isTyping}")
                 
-                val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
-                _typingUsers.value = _typingUsers.value.toMutableMap().apply {
-                    if (event.isTyping) {
-                        put(event.chatId, currentUsers + event.userId)
-                    } else {
-                        put(event.chatId, currentUsers - event.userId)
-                        if (get(event.chatId)?.isEmpty() == true) {
-                            remove(event.chatId)
+                // No mostrar mi propio indicador de escritura
+                val currentUserId = authDataStore.getUserId().first()
+                if (event.userId != currentUserId) {
+                    val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
+                    _typingUsers.value = _typingUsers.value.toMutableMap().apply {
+                        if (event.isTyping) {
+                            put(event.chatId, currentUsers + event.userId)
+                        } else {
+                            put(event.chatId, currentUsers - event.userId)
+                            if (get(event.chatId)?.isEmpty() == true) {
+                                remove(event.chatId)
+                            }
                         }
                     }
+                } else {
+                    Log.d(TAG, "⚠️ Es mi propio indicador, ignorando")
                 }
             }
             

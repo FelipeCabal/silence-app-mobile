@@ -22,6 +22,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val api = ApiClient.authService
     private val store = AuthDataStore(application)
+    private val database = DatabaseProvider.getDatabase(application)
 
     private val repository = AuthRepository( api, store)
 
@@ -49,11 +50,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             onResult(token)
         }
     }
+    fun loadUserId(onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val userId = store.getUserId().first()
+            onResult(userId)
+        }
+    }
 
     //AUTH
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             try {
+                // Limpiar BD local antes de login para evitar datos de usuarios previos
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+                
                 val success = repository.loginUser(email, password)
                 _authSuccess.value = success
             } catch (e: Exception) {
@@ -72,6 +84,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
+                // Limpiar BD local antes de register
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+                
                 val success = repository.registerUser(nombre, email, password, sexo, fechaNto, pais)
                 _authSuccess.value = success
             } catch (e: Exception) {
@@ -81,7 +98,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun logout() {
         viewModelScope.launch {
+            // Limpiar BD local al cerrar sesión
+            withContext(Dispatchers.IO) {
+                database.clearAllTables()
+            }
+            
             store.saveToken("")
+            store.saveUserId("")
         }
     }
     fun getProfile(onResult: (ProfileResponse?) -> Unit) {

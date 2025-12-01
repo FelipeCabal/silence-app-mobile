@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.silenceapp.data.local.entity.Message
+import com.example.silenceapp.ui.theme.PaleMint
+import com.example.silenceapp.ui.theme.DarkGreen
+import com.example.silenceapp.ui.theme.lightGray
 import com.example.silenceapp.ui.theme.DimGray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,9 +37,10 @@ fun MessageBubble(
     val isDarkTheme = isSystemInDarkTheme()
     
     // Usar colores del tema
-    val myMessageColor = MaterialTheme.colorScheme.surface
-    val otherMessageColorLight = DimGray
-    val otherMessageColorDark = DimGray
+    val myMessageColorLight = PaleMint // Verde claro del tema para modo claro
+    val myMessageColorDark = DarkGreen // Verde oscuro del tema para modo oscuro
+    val otherMessageColorLight = lightGray // Gris claro del tema
+    val otherMessageColorDark = DimGray // Gris oscuro del tema
     
     Row(
         modifier = modifier
@@ -51,9 +55,9 @@ fun MessageBubble(
                 bottomStart = if (isMyMessage) 16.dp else 4.dp,
                 bottomEnd = if (isMyMessage) 4.dp else 16.dp
             ),
-            color = if (isMyMessage) 
-                myMessageColor
-            else 
+            color = if (isMyMessage)
+                if (isDarkTheme) myMessageColorDark else myMessageColorLight
+            else
                 if (isDarkTheme) otherMessageColorDark else otherMessageColorLight,
             modifier = Modifier.widthIn(max = 280.dp)
         ) {
@@ -63,10 +67,10 @@ fun MessageBubble(
                 // Contenido del mensaje
                 Text(
                     text = message.content,
-                    color = if (isMyMessage) 
-                        MaterialTheme.colorScheme.onPrimaryContainer
+                    color = if (isMyMessage)
+                        if (isDarkTheme) Color.White else Color.Black
                     else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
+                        if (isDarkTheme) Color.White else Color.Black,
                     fontSize = 15.sp
                 )
                 
@@ -81,9 +85,9 @@ fun MessageBubble(
                         text = formatTime(message.timestamp),
                         fontSize = 11.sp,
                         color = if (isMyMessage)
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            if (isDarkTheme) Color.White.copy(alpha = 0.7f) else Color.Gray
                         else
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            Color.Gray
                     )
                     
                     // Check marks solo en mis mensajes
@@ -95,9 +99,9 @@ fun MessageBubble(
                                 Icons.Default.Done, // ✓
                             contentDescription = if (message.isRead) "Leído" else "Enviado",
                             tint = if (message.isRead) 
-                                MaterialTheme.colorScheme.secondary
+                                Color(0xFF03A9F4) // Azul cuando está leído
                             else 
-                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                if (isDarkTheme) Color.White.copy(alpha = 0.7f) else Color.Gray,
                             modifier = Modifier.size(14.dp)
                         )
                     }

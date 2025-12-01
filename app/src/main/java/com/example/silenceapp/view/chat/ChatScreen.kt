@@ -61,6 +61,7 @@ fun ChatScreen(
     var currentUserId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         currentUserId = authDataStore.getUserId().first()
+        android.util.Log.d("ChatScreen", "👤 userId del usuario actual: $currentUserId")
     }
     
     // 🚪 Unirse al chat cuando entra a la pantalla
