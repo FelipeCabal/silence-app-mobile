@@ -258,24 +258,48 @@ class SocketIOManager private constructor(
             val data = args[0] as JSONObject
             Log.d(TAG, "📨 JSON completo: $data")
             
+            // El chatId está en el nivel superior
+            val chatId = data.getString("chatId")
+            val chatTypeStr = data.optString("chatType", "group")
+            
+            // El mensaje está dentro de "message"
             val messageObj = data.getJSONObject("message")
             Log.d(TAG, "📨 Message object: $messageObj")
             
+            // Los campos vienen en español del backend:
+            // - remitente (no userId)
+            // - mensaje (no content)
+            // - fecha (no timestamp)
+            val messageId = messageObj.getString("_id")
+            val userId = messageObj.getString("remitente")
+            val content = messageObj.getString("mensaje")
+            val fechaStr = messageObj.getString("fecha")
+            
+            // Convertir fecha ISO a timestamp
+            val timestamp = try {
+                val instant = java.time.Instant.parse(fechaStr)
+                instant.toEpochMilli()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parseando fecha: $fechaStr", e)
+                System.currentTimeMillis()
+            }
+            
+            Log.d(TAG, "📨 Datos parseados:")
+            Log.d(TAG, "   - messageId: $messageId")
+            Log.d(TAG, "   - chatId: $chatId")
+            Log.d(TAG, "   - userId (remitente): $userId")
+            Log.d(TAG, "   - content (mensaje): $content")
+            Log.d(TAG, "   - timestamp (fecha): $timestamp")
+            
             val messageData = MessageData(
-                _id = messageObj.getString("_id"),
-                chatId = messageObj.getString("chatId"),
-                userId = messageObj.getString("userId"),
-                content = messageObj.getString("content"),
-                timestamp = messageObj.getLong("timestamp"),
-                type = messageObj.optString("type", "text"),
-                isRead = messageObj.optBoolean("isRead", false)
+                _id = messageId,
+                chatId = chatId,
+                userId = userId,
+                content = content,
+                timestamp = timestamp,
+                type = messageObj.optString("tipo", "text"),
+                isRead = messageObj.optBoolean("leido", false)
             )
-            
-            Log.d(TAG, "📨 MessageData creado: id=${messageData._id}, userId=${messageData.userId}, content=${messageData.content.take(30)}")
-            
-            // chatId y chatType pueden estar en el nivel superior O dentro de message
-            val chatId = data.optString("chatId").ifEmpty { messageObj.getString("chatId") }
-            val chatTypeStr = data.optString("chatType").ifEmpty { messageObj.optString("chatType", "group") }
             
             val event = SocketEvent.MessageReceived(
                 chatId = chatId,
@@ -284,7 +308,7 @@ class SocketIOManager private constructor(
                 timestamp = data.optString("timestamp", System.currentTimeMillis().toString())
             )
             
-            Log.d(TAG, "📨 Emitiendo evento al flow... chatId=$chatId")
+            Log.d(TAG, "📨 Emitiendo evento al flow...")
             emitEvent(event)
             Log.d(TAG, "💬 Message received: ${messageData._id} from ${messageData.userId}")
         } catch (e: Exception) {
