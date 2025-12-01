@@ -27,6 +27,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val chatDao = DatabaseProvider.getDatabase(application).chatDao()
     private val messageDao = DatabaseProvider.getDatabase(application).messageDao()
     private val membersDao = DatabaseProvider.getDatabase(application).membersDao()
+    private val userDao = DatabaseProvider.getDatabase(application).userDao()
     private val chatService = ApiClient.chatService
     
     // Socket.IO Manager - Usar la instancia única (Singleton)
@@ -54,6 +55,13 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
      */
     private val _typingUsers = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
     val typingUsers: StateFlow<Map<String, Set<String>>> = _typingUsers
+    
+    /**
+     * Nombres de usuarios escribiendo por chat
+     * Map<chatId, Set<userName>>
+     */
+    private val _typingUserNames = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+    val typingUserNames: StateFlow<Map<String, Set<String>>> = _typingUserNames
     
     /**
      * Usuarios activos en el chat actual
@@ -189,7 +197,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 Log.d(TAG, "💬 Dentro de coroutine, obteniendo userId...")
                 val userId = authDataStore.getUserId().first()
+                val userName = authDataStore.getUserName().first()
                 Log.d(TAG, "👤 userId obtenido: $userId")
+                Log.d(TAG, "👤 userName obtenido: $userName")
                 if (userId.isBlank()) {
                     _error.value = "Usuario no autenticado"
                     onResult(false)
@@ -197,7 +207,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 
                 val result = withContext(Dispatchers.IO) {
-                    repository.sendMessageViaSocket(chatId, content, chatType, userId)
+                    repository.sendMessageViaSocket(chatId, content, chatType, userId, userName)
                 }
                 
                 result.fold(
@@ -281,6 +291,13 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     
                     // Verificar que el chat existe
                     withContext(Dispatchers.IO) {
+                        // Verificar si el mensaje ya existe
+                        val existingMessage = messageDao.getMessageById(event.message._id)
+                        if (existingMessage != null) {
+                            Log.w(TAG, "⚠️ Mensaje ya existe en Room: ${event.message._id}, IGNORANDO")
+                            return@withContext
+                        }
+                        
                         val chatExists = chatDao.getChatById(event.message.chatId) != null
                         if (!chatExists) {
                             Log.w(TAG, "⚠️ Chat no existe, creando placeholder...")
@@ -296,6 +313,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             chatDao.insertChat(placeholderChat)
                         }
                         
+                        // Obtener el nombre del usuario
+                        val userName = userDao.getUserByRemoteId(event.message.userId)?.nombre
+                        
                         // Guardar mensaje
                         val message = Message(
                             id = event.message._id,
@@ -305,10 +325,18 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             timestamp = event.message.timestamp,
                             type = event.message.type,
                             isRead = false, // Marcar como no leído inicialmente
+                            userName = userName // Agregar el nombre del usuario
                         )
+                        
+                        Log.d(TAG, "💾 Guardando mensaje en Room:")
+                        Log.d(TAG, "   - id: ${message.id}")
+                        Log.d(TAG, "   - chatId: ${message.chatId}")
+                        Log.d(TAG, "   - userId: ${message.userId}")
+                        Log.d(TAG, "   - content: ${message.content.take(30)}")
+                        Log.d(TAG, "   - timestamp: ${message.timestamp}")
+                        
                         messageDao.insertMessage(message)
-                        Log.d(TAG, "💾 Mensaje guardado en Room: ${message.id}")
-                        Log.d(TAG, "💾 Detalles: chatId=${message.chatId}, userId=${message.userId}, content=${message.content.take(30)}")
+                        Log.d(TAG, "✅ Mensaje guardado exitosamente")
                         
                         // Actualizar último mensaje del chat
                         chatDao.getChatById(event.message.chatId)?.let { chat ->
@@ -347,14 +375,34 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // No mostrar mi propio indicador de escritura
                 val currentUserId = authDataStore.getUserId().first()
                 if (event.userId != currentUserId) {
-                    val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
-                    _typingUsers.value = _typingUsers.value.toMutableMap().apply {
-                        if (event.isTyping) {
-                            put(event.chatId, currentUsers + event.userId)
-                        } else {
-                            put(event.chatId, currentUsers - event.userId)
-                            if (get(event.chatId)?.isEmpty() == true) {
-                                remove(event.chatId)
+                    // Obtener el nombre del usuario desde Room
+                    viewModelScope.launch(Dispatchers.IO) {
+                        val userName = userDao.getUserByRemoteId(event.userId)?.nombre ?: "Usuario"
+                        
+                        withContext(Dispatchers.Main) {
+                            val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
+                            val currentUserNames = _typingUserNames.value[event.chatId] ?: emptySet()
+                            
+                            _typingUsers.value = _typingUsers.value.toMutableMap().apply {
+                                if (event.isTyping) {
+                                    put(event.chatId, currentUsers + event.userId)
+                                } else {
+                                    put(event.chatId, currentUsers - event.userId)
+                                    if (get(event.chatId)?.isEmpty() == true) {
+                                        remove(event.chatId)
+                                    }
+                                }
+                            }
+                            
+                            _typingUserNames.value = _typingUserNames.value.toMutableMap().apply {
+                                if (event.isTyping) {
+                                    put(event.chatId, currentUserNames + userName)
+                                } else {
+                                    put(event.chatId, currentUserNames - userName)
+                                    if (get(event.chatId)?.isEmpty() == true) {
+                                        remove(event.chatId)
+                                    }
+                                }
                             }
                         }
                     }
@@ -387,6 +435,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 Log.d(TAG, "❌ Desconectado")
                 _activeUsers.value = emptySet()
                 _typingUsers.value = emptyMap()
+                _typingUserNames.value = emptyMap()
             }
             
             is SocketEvent.Error -> {

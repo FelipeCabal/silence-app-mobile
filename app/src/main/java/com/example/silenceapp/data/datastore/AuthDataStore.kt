@@ -12,6 +12,7 @@ class AuthDataStore(private val context: Context) {
 
     private val TOKEN_KEY = stringPreferencesKey("jwt_token")
     private val USER_ID_KEY = stringPreferencesKey("user_id")
+    private val USER_NAME_KEY = stringPreferencesKey("user_name")
 
     suspend fun saveToken(token: String) {
         context.dataStore.edit { prefs ->
@@ -37,5 +38,21 @@ class AuthDataStore(private val context: Context) {
      */
     fun getUserId() = context.dataStore.data.map { prefs ->
         prefs[USER_ID_KEY] ?: ""
+    }
+    
+    /**
+     * Guardar el nombre del usuario
+     */
+    suspend fun saveUserName(userName: String) {
+        context.dataStore.edit { prefs ->
+            prefs[USER_NAME_KEY] = userName
+        }
+    }
+    
+    /**
+     * Obtener el nombre del usuario
+     */
+    fun getUserName() = context.dataStore.data.map { prefs ->
+        prefs[USER_NAME_KEY] ?: ""
     }
 }

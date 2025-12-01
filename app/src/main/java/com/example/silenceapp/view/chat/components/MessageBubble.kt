@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.silenceapp.data.local.entity.Message
@@ -64,6 +65,17 @@ fun MessageBubble(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
+                // Nombre del usuario (solo en mensajes de otros)
+                if (!isMyMessage && message.userName != null) {
+                    Text(
+                        text = "@${message.userName}",
+                        color = if (isDarkTheme) Color.White.copy(alpha = 0.9f) else Color(0xFF2196F3),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                
                 // Contenido del mensaje
                 Text(
                     text = message.content,

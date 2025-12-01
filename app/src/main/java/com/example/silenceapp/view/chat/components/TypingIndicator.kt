@@ -23,13 +23,13 @@ import kotlinx.coroutines.delay
 @Composable
 fun TypingIndicator(
     chatId: String,
-    typingUsers: Map<String, Set<String>>,
+    typingUserNames: Map<String, Set<String>>,
     modifier: Modifier = Modifier
 ) {
-    val usersTyping = typingUsers[chatId] ?: emptySet()
+    val userNamesTyping = typingUserNames[chatId] ?: emptySet()
     
     AnimatedVisibility(
-        visible = usersTyping.isNotEmpty(),
+        visible = userNamesTyping.isNotEmpty(),
         enter = fadeIn(),
         exit = fadeOut(),
         modifier = modifier
@@ -52,12 +52,15 @@ fun TypingIndicator(
             
             Spacer(modifier = Modifier.width(8.dp))
             
-            // Texto según cantidad de usuarios
+            // Texto según cantidad de usuarios con nombres
             Text(
                 text = when {
-                    usersTyping.size == 1 -> "está escribiendo..."
-                    usersTyping.size == 2 -> "2 personas están escribiendo..."
-                    else -> "${usersTyping.size} personas están escribiendo..."
+                    userNamesTyping.size == 1 -> "${userNamesTyping.first()} está escribiendo..."
+                    userNamesTyping.size == 2 -> {
+                        val names = userNamesTyping.toList()
+                        "${names[0]} y ${names[1]} están escribiendo..."
+                    }
+                    else -> "${userNamesTyping.size} personas están escribiendo..."
                 },
                 fontSize = 13.sp,
                 color = Color.Gray,

@@ -50,6 +50,7 @@ fun ChatScreen(
     val messages by viewModel.getMessagesByChatId(chatId).collectAsState(initial = emptyList())
     val connectionState by viewModel.socketConnectionState.collectAsState()
     val typingUsers by viewModel.typingUsers.collectAsState()
+    val typingUserNames by viewModel.typingUserNames.collectAsState()
     val activeUsers by viewModel.activeUsers.collectAsState()
     
     // Log cuando cambian los mensajes
@@ -196,7 +197,7 @@ fun ChatScreen(
                 item {
                     TypingIndicator(
                         chatId = chatId,
-                        typingUsers = typingUsers
+                        typingUserNames = typingUserNames
                     )
                 }
                 

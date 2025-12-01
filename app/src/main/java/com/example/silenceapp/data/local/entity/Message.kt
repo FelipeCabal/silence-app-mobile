@@ -28,4 +28,5 @@ data class Message(
     val timestamp: Long,
     val isRead: Boolean,
     val type: String,
+    val userName: String? = null // Nombre del usuario que envió el mensaje
 )

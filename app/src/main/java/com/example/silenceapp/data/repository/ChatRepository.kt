@@ -106,7 +106,8 @@ class ChatRepository(
         chatId: String,
         content: String,
         chatType: String,
-        userId: String
+        userId: String,
+        userName: String? = null
     ): Result<Message> {
         return try {
             Log.d(TAG, "💬 Enviando mensaje vía Socket.IO...")
@@ -139,7 +140,8 @@ class ChatRepository(
                 userId = userId,
                 timestamp = System.currentTimeMillis(),
                 type = "text",
-                isRead = false
+                isRead = false,
+                userName = userName
             )
             
             // 3. Guardar en Room

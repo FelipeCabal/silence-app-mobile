@@ -270,7 +270,7 @@ class SocketIOManager private constructor(
             // - remitente (no userId)
             // - mensaje (no content)
             // - fecha (no timestamp)
-            val messageId = messageObj.getString("_id")
+            val messageIdFromBackend = messageObj.optString("_id", "")
             val userId = messageObj.getString("remitente")
             val content = messageObj.getString("mensaje")
             val fechaStr = messageObj.getString("fecha")
@@ -284,8 +284,18 @@ class SocketIOManager private constructor(
                 System.currentTimeMillis()
             }
             
+            // IMPORTANTE: Si el _id del mensaje es igual al chatId, generar un ID único
+            // porque el backend está usando el mismo ID para múltiples mensajes
+            val messageId = if (messageIdFromBackend == chatId || messageIdFromBackend.isEmpty()) {
+                // Generar ID único: chatId + timestamp + userId
+                "${chatId}_${timestamp}_${userId.takeLast(6)}"
+            } else {
+                messageIdFromBackend
+            }
+            
             Log.d(TAG, "📨 Datos parseados:")
-            Log.d(TAG, "   - messageId: $messageId")
+            Log.d(TAG, "   - messageId original: $messageIdFromBackend")
+            Log.d(TAG, "   - messageId generado: $messageId")
             Log.d(TAG, "   - chatId: $chatId")
             Log.d(TAG, "   - userId (remitente): $userId")
             Log.d(TAG, "   - content (mensaje): $content")
