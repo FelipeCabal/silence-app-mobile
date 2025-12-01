@@ -265,13 +265,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             is SocketEvent.MessageReceived -> {
                 Log.d(TAG, "💬 Mensaje recibido de Socket.IO:")
                 Log.d(TAG, "   - ID: ${event.message._id}")
+                Log.d(TAG, "   - ChatId del evento: ${event.message.chatId}")
+                Log.d(TAG, "   - ChatId del mensaje: ${event.chatId}")
                 Log.d(TAG, "   - De userId: ${event.message.userId}")
                 Log.d(TAG, "   - Contenido: ${event.message.content.take(50)}")
-                Log.d(TAG, "   - ChatId: ${event.message.chatId}")
                 
                 // Obtener userId actual para no duplicar mensajes propios
                 val currentUserId = authDataStore.getUserId().first()
                 Log.d(TAG, "   - Mi userId: $currentUserId")
+                Log.d(TAG, "   - ¿Es mi mensaje? ${event.message.userId == currentUserId}")
                 
                 // Solo guardar si NO es mi propio mensaje (los propios ya se guardan optimísticamente)
                 if (event.message.userId != currentUserId) {
@@ -306,6 +308,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         )
                         messageDao.insertMessage(message)
                         Log.d(TAG, "💾 Mensaje guardado en Room: ${message.id}")
+                        Log.d(TAG, "💾 Detalles: chatId=${message.chatId}, userId=${message.userId}, content=${message.content.take(30)}")
                         
                         // Actualizar último mensaje del chat
                         chatDao.getChatById(event.message.chatId)?.let { chat ->

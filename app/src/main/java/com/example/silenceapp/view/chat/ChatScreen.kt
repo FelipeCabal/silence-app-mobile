@@ -52,6 +52,14 @@ fun ChatScreen(
     val typingUsers by viewModel.typingUsers.collectAsState()
     val activeUsers by viewModel.activeUsers.collectAsState()
     
+    // Log cuando cambian los mensajes
+    LaunchedEffect(messages.size) {
+        android.util.Log.d("ChatScreen", "📋 Total mensajes en pantalla: ${messages.size}")
+        messages.forEach { msg ->
+            android.util.Log.d("ChatScreen", "   - ${msg.id.take(10)}: userId=${msg.userId}, content=${msg.content.take(20)}")
+        }
+    }
+    
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -197,6 +205,9 @@ fun ChatScreen(
                     items = messages.reversed(),
                     key = { it.id }
                 ) { message ->
+                    // Log para debug
+                    android.util.Log.d("ChatScreen", "🎨 Renderizando mensaje: id=${message.id.take(10)}, userId=${message.userId}, currentUserId=$currentUserId, isMyMessage=${message.userId == currentUserId}")
+                    
                     MessageBubble(
                         message = message,
                         isMyMessage = message.userId == currentUserId

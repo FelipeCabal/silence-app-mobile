@@ -252,8 +252,14 @@ class SocketIOManager private constructor(
     
     private val onMessageReceived = Emitter.Listener { args ->
         try {
+            Log.d(TAG, "📨 onMessageReceived LISTENER ACTIVADO")
+            Log.d(TAG, "📨 Args recibidos: ${args.size} elementos")
+            
             val data = args[0] as JSONObject
+            Log.d(TAG, "📨 JSON completo: $data")
+            
             val messageObj = data.getJSONObject("message")
+            Log.d(TAG, "📨 Message object: $messageObj")
             
             val messageData = MessageData(
                 _id = messageObj.getString("_id"),
@@ -265,12 +271,20 @@ class SocketIOManager private constructor(
                 isRead = messageObj.optBoolean("isRead", false)
             )
             
+            Log.d(TAG, "📨 MessageData creado: id=${messageData._id}, userId=${messageData.userId}, content=${messageData.content.take(30)}")
+            
+            // chatId y chatType pueden estar en el nivel superior O dentro de message
+            val chatId = data.optString("chatId").ifEmpty { messageObj.getString("chatId") }
+            val chatTypeStr = data.optString("chatType").ifEmpty { messageObj.optString("chatType", "group") }
+            
             val event = SocketEvent.MessageReceived(
-                chatId = data.getString("chatId"),
-                chatType = ChatType.fromString(data.getString("chatType")),
+                chatId = chatId,
+                chatType = ChatType.fromString(chatTypeStr),
                 message = messageData,
-                timestamp = data.getString("timestamp")
+                timestamp = data.optString("timestamp", System.currentTimeMillis().toString())
             )
+            
+            Log.d(TAG, "📨 Emitiendo evento al flow... chatId=$chatId")
             emitEvent(event)
             Log.d(TAG, "💬 Message received: ${messageData._id} from ${messageData.userId}")
         } catch (e: Exception) {
