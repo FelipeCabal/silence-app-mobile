@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 4,
-    "identityHash": "a1b57a2701876c4dd68b5b08be52b682",
+    "version": 8,
+    "identityHash": "9c71422021a8607f19bbbb4007fd0817",
     "entities": [
       {
         "tableName": "users",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `description` TEXT, `images` TEXT NOT NULL, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `esAnonimo` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `userImageProfile` TEXT, `description` TEXT, `images` TEXT, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `comentarios` TEXT, `esAnonimo` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -95,6 +95,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "userImageProfile",
+            "columnName": "userImageProfile",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
@@ -104,7 +110,7 @@
             "fieldPath": "images",
             "columnName": "images",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "cantLikes",
@@ -117,6 +123,12 @@
             "columnName": "cantComentarios",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "comentarios",
+            "columnName": "comentarios",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "esAnonimo",
@@ -284,7 +296,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a1b57a2701876c4dd68b5b08be52b682')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9c71422021a8607f19bbbb4007fd0817')"
     ]
   }
 }

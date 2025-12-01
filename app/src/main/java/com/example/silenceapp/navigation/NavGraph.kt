@@ -1,5 +1,6 @@
 package com.example.silenceapp.navigation
 
+import PostScreenSimple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,8 +14,6 @@ import androidx.navigation.navArgument
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
-import com.example.silenceapp.view.posts.PostScreen
-import com.example.silenceapp.view.testingView.TestingViews
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.view.notifications.NotificationsScreen
@@ -30,7 +29,7 @@ import com.example.silenceapp.ui.components.TopBar
 import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
-import com.example.silenceapp.view.home.HomeScreen
+import com.example.silenceapp.view.posts.PostDetailScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -43,10 +42,13 @@ fun NavGraph(navController: NavHostController) {
 
 
     if (isAuthenticated == null) {
-        Box(modifier = androidx.compose.ui.Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
-        
+
         return
     }
 
@@ -59,9 +61,9 @@ fun NavGraph(navController: NavHostController) {
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     // Ocultar barras en login y register
-    val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") && 
-                     !(currentRoute?.startsWith("add-post") ?: false)
+    val showBar = currentRoute !in listOf("login", "register", "post/{id}")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") &&
+            !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
@@ -102,9 +104,15 @@ fun NavGraph(navController: NavHostController) {
                     RegisterScreen(navController, authViewModel)
                 }
             }
-            composable("home") {
-                TestingViews()
-            }
+           /** composable("home") {
+                //TestingViews(navController)
+                PostScreenSimple(
+                    onPostClick = { postId ->
+                        navController.navigate("post/$postId")
+                    },
+                    onCreatePostClick = {}
+                )
+            }*/
 
             composable("edit-profile") {
                 if (isAuthenticated != true) {
@@ -139,23 +147,39 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    PostScreen()
+                    PostScreenSimple(
+                        viewModel = postViewModel, // Pasar el ViewModel
+                        onPostClick = { postId ->
+                            navController.navigate("post/$postId")
+                        },
+                        onCreatePostClick = {
+                            navController.navigate(ROUTE_ADD_POST)
+                        }
+                    )
                 }
             }
-            composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
-            listOf( navArgument("imageUri"){
-            nullable = true
-            defaultValue = null
-        })
-        ){  backStack ->
-            val imageUri = backStack.arguments?.getString("imageUri")
-            CreatePostScreen(
-                navController = navController,
-                imageUri = imageUri,
-                authViewModel = authViewModel,
-                postViewModel = postViewModel
-            )
-        }
+            composable(
+                "$ROUTE_ADD_POST?imageUri = {imageUri}",
+                listOf(navArgument("imageUri") {
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStack ->
+                val imageUri = backStack.arguments?.getString("imageUri")
+                CreatePostScreen(
+                    navController = navController,
+                    imageUri = imageUri,
+                    authViewModel = authViewModel,
+                    postViewModel = postViewModel
+                )
+            }
+            composable("post/{id}") { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id") ?: ""
+                // Si en la home pasas remoteId (string) esto funciona.
+                PostDetailScreen(postId = id, postViewModel = postViewModel)
+            }
+
+
         }
     }
 }

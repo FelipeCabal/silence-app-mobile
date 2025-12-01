@@ -48,4 +48,19 @@ class Converters {
     fun toTimestamp(value: Long?): Timestamp? {
         return value?.let { Timestamp(it) }
     }
+
+    // Convertir List<String> → String (JSON)
+    @TypeConverter
+    fun fromStringList(list: List<String>?): String {
+        return Gson().toJson(list)
+    }
+
+    // Convertir String (JSON) → List<String>
+    @TypeConverter
+    fun toStringList(json: String?): List<String> {
+        if (json.isNullOrEmpty()) return emptyList()
+
+        val type = object : TypeToken<List<String>>() {}.type
+        return Gson().fromJson(json, type)
+    }
 }

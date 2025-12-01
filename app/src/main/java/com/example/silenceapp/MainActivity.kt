@@ -9,19 +9,19 @@ import com.example.silenceapp.navigation.NavGraph
 import com.example.silenceapp.ui.theme.SilenceAppTheme
 import com.example.silenceapp.ui.theme.backgroundColor
 import androidx.navigation.compose.rememberNavController
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         installSplashScreen()
-        
+
         super.onCreate(savedInstanceState)
         setContent {
             SilenceAppTheme {
                 val navController = rememberNavController()
 
-                Surface (color = backgroundColor){
+                Surface(color = backgroundColor) {
                     NavGraph(navController)
+                    //TestingViews(navController)
                 }
 
             }

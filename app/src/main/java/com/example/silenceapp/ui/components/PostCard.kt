@@ -3,7 +3,9 @@ package com.example.silenceapp.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.protobuf.LazyStringArrayList.emptyList
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.silenceapp.data.local.entity.Post
@@ -30,26 +33,39 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.let
 
 @Composable
-fun PostCard(post: Post) {
+fun PostCard(post: Post, onClick: (String) -> Unit) {
     val context = LocalContext.current
     val gson = Gson()
-    val imageUris = post.images?.let {
-        try {
-            gson.fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type)
-        } catch (e: Exception) {
-            emptyList()
+
+    // ✅ CORRECCIÓN: Manejar el parsing de forma segura
+    val imageUris = try {
+        when {
+            post.images.isNullOrEmpty() -> emptyList()
+            post.images.startsWith("[") -> {
+                // Es un JSON array
+                gson.fromJson<List<String>>(post.images, object : TypeToken<List<String>>() {}.type)
+            }
+            post.images.startsWith("http") -> {
+                // Es una URL simple
+                listOf(post.images)
+            }
+            else -> emptyList()
         }
-    } ?: emptyList()
-    
+    } catch (e: Exception) {
+        e.printStackTrace()
+        emptyList()
+    }
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val formattedDate = dateFormat.format(Date(post.createdAt))
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 12.dp)
+            .clickable { onClick(post.remoteId?: "") },
         shape = RectangleShape,
         colors = CardDefaults.cardColors(
             containerColor = postBackgroundColor
@@ -75,122 +91,133 @@ fun PostCard(post: Post) {
                         .border(2.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = post.userName.firstOrNull()?.uppercase() ?: "U",
-                        color = Color.Black,
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Nombre y tiempo
-                Column {
-                    Text(
-                        text = if (post.esAnonimo) "Anónimo" else post.userName,               
-                        color = onBackgroundColor,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        text = formattedDate,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            // Texto del post
-            post.description?.let {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = onBackgroundColor,
-                )
-            }
-
-            // Imágenes (todas las que tenga el post)
-            if (imageUris.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    imageUris.forEach { uri ->
-                        val imageData = if (uri.startsWith("content://") || uri.startsWith("file://")) {
-                            uri
-                        } else {
-                            // Es una ruta absoluta, convertir a File
-                            java.io.File(uri)
-                        }
-                        
+                    if (post.userImageProfile.isNullOrEmpty()) {
+                        Text(
+                            text = post.userName.firstOrNull()?.uppercase() ?: "U",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    } else {
                         Image(
-                            painter = rememberAsyncImagePainter(
-                                model = ImageRequest.Builder(context)
-                                    .data(imageData)
-                                    .crossfade(true)
-                                    .build()
-                            ),
-                            contentDescription = "Imagen del post",
+                            painter = rememberAsyncImagePainter(post.userImageProfile),
+                            contentDescription = "Foto de perfil de ${post.userName}",
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 200.dp, max = 400.dp)
-                                .clip(RoundedCornerShape(12.dp)),
+                                .height(50.dp)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Fit
                         )
                     }
                 }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Nombre y tiempo
+                    Column {
+                        Text(
+                            text = if (post.esAnonimo) "Anónimo" else post.userName,
+                            color = onBackgroundColor,
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Text(
+                            text = formattedDate,
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botones de interacción
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Likes
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(secondaryColor.copy(0.15f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Favorite,
-                        contentDescription = "Likes",
-                        tint = secondaryColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                // Texto del post
+                post.description?.let {
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = post.cantLikes.toString(),
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = onBackgroundColor,
-                        style = MaterialTheme.typography.labelLarge
                     )
                 }
 
-                // Comentarios
+                // Imágenes (todas las que tenga el post)
+                if (imageUris.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                        imageUris.forEach { uri ->
+
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    model = ImageRequest.Builder(context)
+                                        .data(uri)           // ✔️ acepta URLs, files, content://
+                                        .crossfade(true)
+                                        .build()
+                                ),
+                                contentDescription = "Imagen del post",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 200.dp, max = 400.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botones de interacción
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color.Gray.copy(0.15f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    //  horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline,
-                        contentDescription = "Comentarios",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = post.cantComentarios.toString(),
-                        color = onBackgroundColor,
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    // Likes
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(secondaryColor.copy(0.15f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Favorite,
+                            contentDescription = "Likes",
+                            tint = secondaryColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = post.cantLikes.toString(),
+                            color = onBackgroundColor,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+
+                    // Comentarios
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color.Gray.copy(0.15f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = "Comentarios",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = post.cantComentarios.toString(),
+                            color = onBackgroundColor,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
             }
         }
     }
-}
+
+
