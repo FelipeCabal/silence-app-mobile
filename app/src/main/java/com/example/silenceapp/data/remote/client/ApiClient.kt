@@ -5,6 +5,7 @@ import com.example.silenceapp.data.remote.service.AuthService
 import android.util.Log
 import com.example.silenceapp.data.remote.response.ImagenDeserializer
 import com.example.silenceapp.data.remote.service.FirebaseService
+import com.example.silenceapp.data.remote.service.LikeService
 import com.example.silenceapp.data.remote.service.PostService
 import com.example.silenceapp.data.remote.service.UserService
 import com.google.gson.GsonBuilder
@@ -47,6 +48,7 @@ object ApiClient {
     val firebaseService: FirebaseService = retrofit.create(FirebaseService::class.java)
 
     val postService: PostService = retrofit.create(PostService::class.java)
+    val likeService: LikeService = retrofit.create(LikeService::class.java)
 
     init {
         Log.d(TAG, "Using BASE_URL: $BASE_URL")

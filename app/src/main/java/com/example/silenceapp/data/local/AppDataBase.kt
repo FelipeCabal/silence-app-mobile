@@ -15,7 +15,7 @@ import com.example.silenceapp.data.local.entity.Notification
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.data.local.entity.UserEntity
 
-@Database(entities = [UserEntity::class, Post::class, Comment::class, Notification::class], version = 8)
+@Database(entities = [UserEntity::class, Post::class, Comment::class, Notification::class], version = 9)
 @TypeConverters(Converters::class)
 
 abstract class AppDatabase : RoomDatabase() {

@@ -16,5 +16,6 @@ data class Post(
     val cantComentarios: Int = 0,
     val comentarios: String? = null,
     val esAnonimo: Boolean = false,
+    val hasLiked: Boolean = false,  // Indica si el usuario actual dio like
     val createdAt: Long = System.currentTimeMillis()  // Timestamp en millis
 )

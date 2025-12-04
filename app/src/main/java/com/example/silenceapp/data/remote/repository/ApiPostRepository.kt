@@ -9,13 +9,13 @@ class ApiPostRepository () {
 
     private val api = ApiClient.postService
 
-    suspend fun getAllPosts(): List<Post> {
+    suspend fun getAllPosts(currentUserId: String? = null): List<Post> {
         val response = api.getAllPosts()
-        return response.map{ it.toLocalPost() }
+        return response.map{ it.toLocalPost(currentUserId) }
     }
 
-    suspend fun getPostById(id: String): Post {
+    suspend fun getPostById(id: String, currentUserId: String? = null): Post {
         val response = api.getPostById(id)
-        return response.toLocalPostDetail()
+        return response.toLocalPostDetail(currentUserId)
     }
 }

@@ -42,19 +42,7 @@ fun PostScreenSimple(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onCreatePostClick,
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Crear post"
-                )
-            }
-        }
-    ) { paddingValues ->
+    Scaffold { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -113,7 +101,10 @@ fun PostScreenSimple(
                         ) { post ->
                             PostCard(
                                 post = post,
-                                onClick = onPostClick
+                                onClick = onPostClick,
+                                onLikeClick = { remoteId ->
+                                    viewModel.toggleLike(remoteId)
+                                }
                             )
                         }
 

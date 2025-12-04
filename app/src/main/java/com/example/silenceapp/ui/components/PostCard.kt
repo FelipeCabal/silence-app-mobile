@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.*
@@ -42,7 +43,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun PostCard(post: Post, onClick: (String) -> Unit) {
+fun PostCard(
+    post: Post, 
+    onClick: (String) -> Unit,
+    onLikeClick: ((String) -> Unit)? = null
+) {
     val context = LocalContext.current
     val gson = Gson()
 
@@ -172,19 +177,37 @@ fun PostCard(post: Post, onClick: (String) -> Unit) {
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp))
                             .background(secondaryColor.copy(0.15f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .padding(horizontal = if (onLikeClick != null) 4.dp else 12.dp, vertical = 6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Favorite,
-                            contentDescription = "Likes",
-                            tint = secondaryColor,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        if (onLikeClick != null) {
+                            IconButton(
+                                onClick = { 
+                                    post.remoteId?.let { onLikeClick(it) } 
+                                },
+                                modifier = Modifier.size(32.dp),
+                                enabled = post.remoteId != null
+                            ) {
+                                Icon(
+                                    imageVector = if (post.hasLiked) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                    contentDescription = "Likes",
+                                    tint = secondaryColor,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = if (post.hasLiked) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = "Likes",
+                                tint = secondaryColor,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
                         Text(
                             text = post.cantLikes.toString(),
                             color = onBackgroundColor,
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(end = 8.dp)
                         )
                     }
 

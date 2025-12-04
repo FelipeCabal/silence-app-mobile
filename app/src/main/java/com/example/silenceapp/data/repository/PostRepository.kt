@@ -18,6 +18,15 @@ class PostRepository(private val postDao: PostDao) {
         }
     }
     
+    suspend fun updatePost(post: Post): Boolean {
+        return try {
+            postDao.updatePost(post)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
     suspend fun deletePost(postId: Int): Boolean {
         return try {
             postDao.deletePost(postId)
