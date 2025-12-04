@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.ui.graphics)
     kapt("androidx.room:room-compiler:2.6.1") // 🔥 Importante para generar el código
     implementation("com.google.code.gson:gson:2.10.1")
 

@@ -1,6 +1,5 @@
 package com.example.silenceapp.navigation
 
-import PostScreenSimple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -9,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
@@ -30,6 +28,7 @@ import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import com.example.silenceapp.view.posts.PostDetailScreen
+import com.example.silenceapp.view.posts.PostScreenSimple
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -62,7 +61,7 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register", "post/{id}")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") &&
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "post/{id}") &&
             !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(

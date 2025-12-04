@@ -2,7 +2,6 @@ package com.example.silenceapp.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.silenceapp.data.remote.response.ComentarioResponse
 
 @Entity(tableName = "posts")
 data class Post(

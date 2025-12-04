@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.silenceapp.data.local.DatabaseProvider
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.data.remote.repository.ApiPostRepository
-import com.example.silenceapp.data.remote.response.PostDetailResponse
-import com.example.silenceapp.data.remote.response.PostResponse
 import com.example.silenceapp.data.repository.PostRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -80,9 +78,13 @@ class PostViewModel(application: Application): AndroidViewModel(application){
             try {
                 // Obtener posts de la API
                 val remotePosts = apiRepository.getAllPosts()
+                val existinPosts = repository.getPosts()
+                val existingIds = existinPosts.map{it.remoteId}.toSet()
+
+                val newPosts = remotePosts.filter {it.remoteId !in existingIds}
 
                 // Guardar en base de datos local
-                remotePosts.forEach { post ->
+                newPosts.forEach { post ->
                     repository.createPost(post)
                 }
 
