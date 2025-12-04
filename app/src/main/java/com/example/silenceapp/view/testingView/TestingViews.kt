@@ -5,13 +5,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.ui.components.PostCard
 import com.google.gson.Gson
 
-@Composable
-fun TestingViews(){
+/**@Composable
+fun TestingViews(navController: NavController){
     val gson = Gson()
+
     // Posts de prueba con la nueva estructura
     val posts = listOf(
         Post(
@@ -37,12 +39,15 @@ fun TestingViews(){
             createdAt = System.currentTimeMillis() - 7200000 // Hace 2 horas
         )
     )
-
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ){
         items(posts){ post ->
-            PostCard(post)
+            PostCard(post,
+                onClick = {
+                    navController.navigate("postDetail/${post.id}")
+                })
+
         }
     }
-}
+}*/

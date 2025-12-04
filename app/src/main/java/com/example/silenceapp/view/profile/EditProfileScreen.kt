@@ -50,17 +50,35 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
     var profileImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isUploadingImage by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    var loadError by remember { mutableStateOf<String?>(null) }
     val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
-        authViewModel.getProfile { p ->
-            profile = p
-            profileImageUrl = p?.imagen
+        Log.d("EditProfileScreen", "🔄 Starting to load profile...")
+        try {
+            authViewModel.getProfile { p ->
+                Log.d("EditProfileScreen", "📥 Profile callback received: ${p?.nombre ?: "null"}")
+                isLoading = false
+                if (p != null) {
+                    profile = p
+                    profileImageUrl = p.imagen?.firstOrNull()
+                    loadError = null
+                    Log.d("EditProfileScreen", "✅ Profile loaded successfully")
+                } else {
+                    loadError = "Error al cargar el perfil. Por favor, inicia sesión nuevamente."
+                    Log.e("EditProfileScreen", "❌ Profile is null")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("EditProfileScreen", "💥 Exception loading profile", e)
+            isLoading = false
+            loadError = "Error al cargar el perfil: ${e.message}"
         }
     }
     LaunchedEffect(Unit) {
         authViewModel.loadToken { token ->
-            Log.d("TOKEN", token)
+            Log.d("EditProfileScreen_TOKEN", "Token: ${if (token.isNotEmpty()) "exists (${token.take(20)}...)" else "EMPTY"}")
         }
     }
 
@@ -87,9 +105,35 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
     )
     var showDatePicker by remember { mutableStateOf(false) }
 
-    if (profile == null) {
+    // Mostrar loading o error
+    if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
+        }
+        return
+    }
+
+    if (loadError != null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = loadError!!,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { navController.navigateUp() }) {
+                    Text("Volver")
+                }
+            }
+        }
+        return
+    }
+
+    if (profile == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No se pudo cargar el perfil")
         }
         return
     }
