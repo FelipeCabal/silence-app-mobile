@@ -53,6 +53,14 @@ fun ChatScreen(
     val typingUserNames by viewModel.typingUserNames.collectAsState()
     val activeUsers by viewModel.activeUsers.collectAsState()
     
+    // Log para debug de typing indicator
+    LaunchedEffect(typingUserNames) {
+        android.util.Log.d("ChatScreen", "👥 typingUserNames cambió: $typingUserNames")
+        typingUserNames[chatId]?.let { names ->
+            android.util.Log.d("ChatScreen", "   Para este chat ($chatId): $names")
+        }
+    }
+    
     // Log cuando cambian los mensajes
     LaunchedEffect(messages.size) {
         android.util.Log.d("ChatScreen", "📋 Total mensajes en pantalla: ${messages.size}")

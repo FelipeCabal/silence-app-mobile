@@ -32,7 +32,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     
     // Socket.IO Manager - Usar la instancia única (Singleton)
     private val socketIOManager = SocketIOManager.getInstance(BuildConfig.BASE_URL)
-    private val repository = ChatRepository(chatDao, messageDao, membersDao, chatService, socketIOManager)
+    private val repository = ChatRepository(chatDao, messageDao, membersDao, userDao, chatService, socketIOManager)
     
     private val authDataStore = AuthDataStore(application)
 
@@ -377,7 +377,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 if (event.userId != currentUserId) {
                     // Obtener el nombre del usuario desde Room
                     viewModelScope.launch(Dispatchers.IO) {
-                        val userName = userDao.getUserByRemoteId(event.userId)?.nombre ?: "Usuario"
+                        val userFromDb = userDao.getUserByRemoteId(event.userId)
+                        // Si no está en DB, usar "Alguien" en lugar del ID
+                        val userName = userFromDb?.nombre
+                        
+                        Log.d(TAG, "👤 Usuario escribiendo: userId=${event.userId}, userName=$userName, encontrado en DB=${userFromDb != null}")
                         
                         withContext(Dispatchers.Main) {
                             val currentUsers = _typingUsers.value[event.chatId] ?: emptySet()
@@ -394,16 +398,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }
                             
-                            _typingUserNames.value = _typingUserNames.value.toMutableMap().apply {
-                                if (event.isTyping) {
-                                    put(event.chatId, currentUserNames + userName)
-                                } else {
-                                    put(event.chatId, currentUserNames - userName)
-                                    if (get(event.chatId)?.isEmpty() == true) {
-                                        remove(event.chatId)
+                            // Solo agregar el nombre si existe en DB
+                            if (userName != null) {
+                                _typingUserNames.value = _typingUserNames.value.toMutableMap().apply {
+                                    if (event.isTyping) {
+                                        put(event.chatId, currentUserNames + userName)
+                                    } else {
+                                        put(event.chatId, currentUserNames - userName)
+                                        if (get(event.chatId)?.isEmpty() == true) {
+                                            remove(event.chatId)
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Si no hay nombre, usar un contador genérico
+                                _typingUserNames.value = _typingUserNames.value.toMutableMap().apply {
+                                    if (event.isTyping) {
+                                        put(event.chatId, currentUserNames + "Alguien")
+                                    } else {
+                                        put(event.chatId, currentUserNames - "Alguien")
+                                        if (get(event.chatId)?.isEmpty() == true) {
+                                            remove(event.chatId)
+                                        }
                                     }
                                 }
                             }
+                            
+                            Log.d(TAG, "📝 TypingUserNames actualizado para chat ${event.chatId}: ${_typingUserNames.value[event.chatId]}")
                         }
                     }
                 } else {

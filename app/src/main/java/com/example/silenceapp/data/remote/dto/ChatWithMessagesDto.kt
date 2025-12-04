@@ -9,7 +9,8 @@ data class ChatMessagesResponse(
     val chatId: String,
     val chatType: String,
     val messages: List<MessageDto>,
-    val total: Int
+    val total: Int,
+    val miembros: List<MemberDto>? = null // Información de miembros si viene embebida
 )
 
 data class MessageDto(
@@ -24,4 +25,15 @@ data class MessageDto(
     @SerializedName("tipo")
     val type: String?,
     val isRead: Boolean
+)
+
+data class MemberDto(
+    @SerializedName("_id")
+    val id: String,
+    @SerializedName("nombre")
+    val nombre: String?,
+    @SerializedName("email")
+    val email: String?,
+    @SerializedName("imagen")
+    val imagen: String?
 )

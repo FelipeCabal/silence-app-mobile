@@ -3,6 +3,7 @@ package com.example.silenceapp.data.repository
 import com.example.silenceapp.data.local.dao.ChatDao
 import com.example.silenceapp.data.local.dao.MembersDao
 import com.example.silenceapp.data.local.dao.MessageDao
+import com.example.silenceapp.data.local.dao.UserDao
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.local.entity.Members
 import com.example.silenceapp.data.local.entity.Message
@@ -22,6 +23,7 @@ class ChatRepository(
     private val chatDao: ChatDao,
     private val messageDao: MessageDao,
     private val membersDao: MembersDao,
+    private val userDao: UserDao,
     private val chatService: ChatService,
     private val socketIOManager: SocketIOManager
 ) {
@@ -250,6 +252,30 @@ class ChatRepository(
                 Log.d(TAG, "📦 Response recibido: chatId=${messagesResponse.chatId}, chatType=${messagesResponse.chatType}")
                 Log.d(TAG, "📦 Total de mensajes: ${messagesResponse.total}")
                 Log.d(TAG, "📦 Mensajes en respuesta: ${messagesResponse.messages.size}")
+                Log.d(TAG, "📦 Miembros en respuesta: ${messagesResponse.miembros?.size ?: 0}")
+                
+                // Guardar miembros si vienen en la respuesta
+                messagesResponse.miembros?.let { membersDto ->
+                    Log.d(TAG, "👥 Guardando ${membersDto.size} miembros en Room...")
+                    membersDto.forEach { memberDto ->
+                        try {
+                            val userEntity = com.example.silenceapp.data.local.entity.UserEntity(
+                                remoteId = memberDto.id,
+                                nombre = memberDto.nombre ?: "Usuario",
+                                email = memberDto.email ?: "",
+                                sexo = "",
+                                fechaNto = "",
+                                pais = "",
+                                imagen = memberDto.imagen
+                            )
+                            // Usar un DAO de usuario si está disponible
+                            userDao.insertUser(userEntity)
+                            Log.d(TAG, "✅ Usuario guardado: ${memberDto.nombre} (${memberDto.id})")
+                        } catch (e: Exception) {
+                            Log.w(TAG, "⚠️ Error al guardar usuario ${memberDto.id}: ${e.message}")
+                        }
+                    }
+                }
                 
                 val messages = mutableListOf<Message>()
                 
