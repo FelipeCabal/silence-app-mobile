@@ -95,6 +95,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "userImageProfile",
+            "columnName": "userImageProfile",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "description",
             "columnName": "description",
             "affinity": "TEXT",
@@ -117,6 +123,12 @@
             "columnName": "cantComentarios",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "comentarios",
+            "columnName": "comentarios",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "esAnonimo",

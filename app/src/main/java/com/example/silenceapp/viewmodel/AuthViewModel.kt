@@ -109,13 +109,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun getProfile(onResult: (ProfileResponse?) -> Unit) {
         viewModelScope.launch {
+            android.util.Log.d("AuthViewModel", "🔄 getProfile started")
             try {
+                android.util.Log.d("AuthViewModel", "📞 Calling repository.getProfile()")
                 val profile = withContext(Dispatchers.IO) { repository.getProfile() }
+                android.util.Log.d("AuthViewModel", "✅ Profile received: ${profile.nombre}")
                 onResult(profile)
             } catch (e: HttpException) {
+                android.util.Log.e("AuthViewModel", "❌ HttpException: ${e.code()} - ${e.message()}")
                 // 401 u otros errores: devolver null para que la UI maneje reautenticación
                 onResult(null)
             } catch (e: Exception) {
+                android.util.Log.e("AuthViewModel", "💥 Exception: ${e.message}", e)
                 onResult(null)
             }
         }

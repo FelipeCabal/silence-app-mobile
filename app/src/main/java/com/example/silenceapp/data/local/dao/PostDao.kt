@@ -3,6 +3,7 @@ package com.example.silenceapp.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.silenceapp.data.local.entity.Post
 
 @Dao
@@ -12,6 +13,9 @@ interface PostDao {
     
     @Insert
     suspend fun insertPost(post: Post): Long
+    
+    @Update
+    suspend fun updatePost(post: Post)
     
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: Int)

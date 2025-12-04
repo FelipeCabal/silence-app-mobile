@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "bf650c96b5ecbe23905fc2585f67ef95",
+    "identityHash": "a1b57a2701876c4dd68b5b08be52b682",
     "entities": [
       {
         "tableName": "users",

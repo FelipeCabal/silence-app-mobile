@@ -1,11 +1,11 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
 }
-
-import java.util.Properties
 
 // Read BASE_URL from local.properties, env var, or Gradle -P; fallback to default
 val localProps = Properties().apply {
@@ -96,6 +96,9 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.ui.graphics)
     kapt("androidx.room:room-compiler:2.6.1") // 🔥 Importante para generar el código
     implementation("com.google.code.gson:gson:2.10.1")
 
