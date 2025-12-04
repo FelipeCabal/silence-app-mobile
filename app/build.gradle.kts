@@ -131,6 +131,9 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // Socket.IO Client
+    implementation("io.socket:socket.io-client:2.1.0")
+
     // Logging interceptor para ver las peticiones en Logcat (ya incluido arriba)
 
     // --- Test ---

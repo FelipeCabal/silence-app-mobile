@@ -4,13 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.view.auth.LoginScreen
 import com.example.silenceapp.view.auth.RegisterScreen
+import com.example.silenceapp.view.chat.ChatListScreen
+import com.example.silenceapp.view.chat.ChatScreen
+import com.example.silenceapp.view.chat.CreateChatScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
@@ -19,6 +25,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavType
 import com.example.silenceapp.viewmodel.UserViewModel
 import com.example.silenceapp.viewmodel.PostViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -33,6 +40,9 @@ import com.example.silenceapp.view.posts.PostScreenSimple
 @Composable
 fun NavGraph(navController: NavHostController) {
 
+    val context = LocalContext.current
+    val authDataStore = remember { AuthDataStore(context) }
+    
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
@@ -41,10 +51,7 @@ fun NavGraph(navController: NavHostController) {
 
 
     if (isAuthenticated == null) {
-        Box(
-            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
 
@@ -52,7 +59,7 @@ fun NavGraph(navController: NavHostController) {
     }
 
     //Debe cambiar esto cuando se implemente la homepage
-    val homescreen = "edit-profile"
+    val homescreen = "home"
     val start = if (isAuthenticated == true) homescreen else "login"
 
     // Obtener la ruta actual correctamente
@@ -60,13 +67,14 @@ fun NavGraph(navController: NavHostController) {
     val currentRoute = navBackStackEntry.value?.destination?.route
 
     // Ocultar barras en login y register
-    val showBar = currentRoute !in listOf("login", "register", "post/{id}")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "post/{id}") &&
-            !(currentRoute?.startsWith("add-post") ?: false)
+    val showBar = currentRoute !in listOf("login", "register")
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats", "create-chat") &&
+                     !(currentRoute?.startsWith("add-post") ?: false) &&
+                     !(currentRoute?.startsWith("chat/") ?: false)
 
     Scaffold(
         topBar = {
-            if (showBarTop) TopBar()
+            if (showBarTop) TopBar(navController)
         },
         bottomBar = {
             if (showBar) BottomNavigationBar(navController)
@@ -137,6 +145,58 @@ fun NavGraph(navController: NavHostController) {
                     NotificationsScreen()
                 }
             }
+            composable("chats") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("chats") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ChatListScreen(navController, authViewModel = authViewModel)
+                }
+            }
+            composable("create-chat") {
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("create-chat") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    CreateChatScreen(navController, authViewModel = authViewModel)
+                }
+            }
+            
+            // Ruta para ChatScreen individual
+            composable(
+                route = "chat/{chatId}/{chatName}/{chatType}",
+                arguments = listOf(
+                    navArgument("chatId") { type = NavType.StringType },
+                    navArgument("chatName") { type = NavType.StringType },
+                    navArgument("chatType") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("chat/{chatId}/{chatName}/{chatType}") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ChatScreen(
+                        chatId = backStackEntry.arguments?.getString("chatId") ?: "",
+                        chatName = backStackEntry.arguments?.getString("chatName") ?: "",
+                        chatType = backStackEntry.arguments?.getString("chatType") ?: "group",
+                        navController = navController,
+                        authDataStore = authDataStore
+                    )
+                }
+            }
+            
             composable("home") {
                 if (isAuthenticated != true) {
                     LaunchedEffect(Unit) {
