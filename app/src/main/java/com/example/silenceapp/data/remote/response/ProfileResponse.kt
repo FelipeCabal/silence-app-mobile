@@ -1,6 +1,7 @@
 package com.example.silenceapp.data.remote.response
 
 import com.google.gson.JsonElement
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 data class ProfileResponse(
