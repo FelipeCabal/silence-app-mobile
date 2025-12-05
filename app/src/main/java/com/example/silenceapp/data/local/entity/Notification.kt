@@ -2,24 +2,18 @@ package com.example.silenceapp.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.sql.Timestamp
-
-enum class NotificationType {
-    LIKE,
-    COMMENT,
-    FRIEND_REQUEST,
-    GROUP_INVITE
-}
 
 @Entity(tableName = "notifications")
 data class Notification(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val userId: String, // We can enhance this later to be a foreign key to a User entity
-    val action: String,
-    val user: String,
-    val time: Timestamp,
-    val avatar: String? = null, // Storing image as a URL or resource identifier
-    val type: NotificationType,
-    val alreadySeen: Boolean = false,
-    val data: String? = null // Optional metadata such as groupId or friendRequestId
+    @PrimaryKey val id: String, // _id del backend
+    val message: String,
+    val senderId: String, // sender._id
+    val senderName: String, // sender.nombre
+    val senderImage: String?, // sender.imagen (puede ser null)
+    val receiverId: String, // receiver._id
+    val receiverName: String, // receiver.nombre
+    val type: Int, // 1 = like, 2 = comment, 3 = follow, etc.
+    val isRead: Boolean = false,
+    val createdAt: Long, // timestamp en millis
+    val updatedAt: Long
 )

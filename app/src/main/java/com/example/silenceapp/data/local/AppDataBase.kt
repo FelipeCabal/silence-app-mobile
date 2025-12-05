@@ -31,7 +31,7 @@ import com.example.silenceapp.data.local.entity.UserEntity
         Members::class,
         Message::class
     ],
-    version = 7
+    version = 10
 )
 @TypeConverters(Converters::class)
 

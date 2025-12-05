@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 7,
-    "identityHash": "2fa92f179000b94f3c5b8a774a4ab260",
+    "version": 10,
+    "identityHash": "5627eaa791ae63e012a11589f1ba61d1",
     "entities": [
       {
         "tableName": "users",
@@ -232,65 +232,77 @@
       },
       {
         "tableName": "notifications",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` TEXT NOT NULL, `action` TEXT NOT NULL, `user` TEXT NOT NULL, `time` INTEGER NOT NULL, `avatar` TEXT, `type` TEXT NOT NULL, `alreadySeen` INTEGER NOT NULL, `data` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `message` TEXT NOT NULL, `senderId` TEXT NOT NULL, `senderName` TEXT NOT NULL, `senderImage` TEXT, `receiverId` TEXT NOT NULL, `receiverName` TEXT NOT NULL, `type` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "userId",
-            "columnName": "userId",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "action",
-            "columnName": "action",
+            "fieldPath": "message",
+            "columnName": "message",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "user",
-            "columnName": "user",
+            "fieldPath": "senderId",
+            "columnName": "senderId",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "time",
-            "columnName": "time",
-            "affinity": "INTEGER",
+            "fieldPath": "senderName",
+            "columnName": "senderName",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "avatar",
-            "columnName": "avatar",
+            "fieldPath": "senderImage",
+            "columnName": "senderImage",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "receiverId",
+            "columnName": "receiverId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "receiverName",
+            "columnName": "receiverName",
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "type",
             "columnName": "type",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "alreadySeen",
-            "columnName": "alreadySeen",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "data",
-            "columnName": "data",
-            "affinity": "TEXT",
-            "notNull": false
+            "fieldPath": "isRead",
+            "columnName": "isRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
             "id"
           ]
@@ -531,7 +543,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2fa92f179000b94f3c5b8a774a4ab260')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5627eaa791ae63e012a11589f1ba61d1')"
     ]
   }
 }
