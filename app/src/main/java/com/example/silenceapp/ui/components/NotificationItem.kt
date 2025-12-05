@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -33,18 +34,18 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.silenceapp.R
 import com.example.silenceapp.data.local.entity.Notification
-import com.example.silenceapp.data.local.entity.NotificationType
-import java.sql.Timestamp
+import com.example.silenceapp.ui.theme.MediumGreen
+import com.example.silenceapp.ui.theme.PaleMint
 
 @Composable
 fun NotificationItem(
     notification: Notification,
     onNotificationClicked: () -> Unit
 ) {
-    val backgroundColor = if (notification.alreadySeen) {
+    val backgroundColor = if (notification.isRead) {
         MaterialTheme.colorScheme.background
     } else {
-        MaterialTheme.colorScheme.primary
+        MediumGreen
     }
 
     Surface(
@@ -62,20 +63,24 @@ fun NotificationItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Tipo de notificación: 1=like, 2=comment, 3=friend_request, etc
                 when (notification.type) {
-                    NotificationType.LIKE, NotificationType.COMMENT -> {
+                    1, 2 -> {
+                        // Like o Comment - Mostrar icono
                         Box(
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
+                                .background(
+                                    if (notification.type == 1) Color(0xFFE91E63)
+                                    else Color(0xFF2196F3)
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
-                            val iconVector =
-                                if (notification.type == NotificationType.LIKE) Icons.Default.Favorite else Icons.Default.ChatBubble
+                            val iconVector = if (notification.type == 1) Icons.Default.Favorite else Icons.Default.ChatBubble
                             Icon(
                                 imageVector = iconVector,
-                                contentDescription = notification.type.name,
+                                contentDescription = "Notification type",
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -83,9 +88,10 @@ fun NotificationItem(
                     }
 
                     else -> {
+                        // Friend request u otros - Mostrar avatar del sender
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = notification.avatar ?: R.mipmap.ic_launcher
+                                model = notification.senderImage ?: R.mipmap.ic_launcher
                             ),
                             contentDescription = "Avatar",
                             modifier = Modifier
@@ -98,20 +104,21 @@ fun NotificationItem(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "${notification.user} ${notification.action}",
+                        text = notification.message,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 Text(
-                    text = getTimeAgo(notification.time),
+                    text = getTimeAgo(notification.createdAt),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            if (notification.type == NotificationType.FRIEND_REQUEST || notification.type == NotificationType.GROUP_INVITE) {
+            // Si es solicitud de amistad o invitación a grupo, mostrar botones
+            if (notification.type == 3) { // 3 = friend_request
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -146,10 +153,9 @@ fun NotificationItem(
 }
 
 @Composable
-private fun getTimeAgo(timestamp: Timestamp): String {
+private fun getTimeAgo(timestampMillis: Long): String {
     val now = System.currentTimeMillis()
-    val time = timestamp.time
-    val diff = now - time
+    val diff = now - timestampMillis
 
     val seconds = diff / 1000
     val minutes = seconds / 60
