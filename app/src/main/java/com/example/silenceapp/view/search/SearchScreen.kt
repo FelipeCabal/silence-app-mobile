@@ -90,55 +90,56 @@ fun SearchScreen(viewModel: SearchViewModel) {
 
         Spacer(Modifier.height(12.dp))
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return
-        }
-
-        error?.let {
-            Text("Error: $it", color = Color.Red)
-            return
-        }
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-
-            if (selectedTab == 0) {
-                items(users) { user ->
-                    val alreadySent = sentRequestsIds.contains(user.id)
-
-                    PersonCard(
-                        user = user,
-                        onFollow = {
-                            if (!alreadySent) {
-                                viewModel.sendFriendRequest(user.id)
-                            }
-                        },
-                        requestSent = alreadySent
-                    )
-                    Spacer(Modifier.height(12.dp))
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-            } else {
-                items(communities) { community ->
-
-                    val alreadySent = sentCommunitiesRequestsIds.contains(community.id)
-
-                    CommunityCard(
-                        community = community,
-                        onFollow = {
-                            if (!alreadySent) {
-                                viewModel.sendCommunityRequest(community.id)
-                            }
-                        },
-                        requestSent = alreadySent
-                    )
-                    Spacer(Modifier.height(12.dp))
+            }
+            error != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Error: $error", color = Color.Red)
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (selectedTab == 0) {
+                        items(users) { user ->
+                            val alreadySent = sentRequestsIds.contains(user.id)
+                            PersonCard(
+                                user = user,
+                                onFollow = {
+                                    if (!alreadySent) {
+                                        viewModel.sendFriendRequest(user.id)
+                                    }
+                                },
+                                requestSent = alreadySent
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    } else {
+                        items(communities) { community ->
+                            val alreadySent = sentCommunitiesRequestsIds.contains(community.id)
+                            CommunityCard(
+                                community = community,
+                                onFollow = {
+                                    if (!alreadySent) {
+                                        viewModel.sendCommunityRequest(community.id)
+                                    }
+                                },
+                                requestSent = alreadySent
+                            )
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    }
                 }
             }
         }

@@ -52,7 +52,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 _communities.value = repository.getCommunities()
 
             } catch (e: Exception) {
-                _error.value = e.message ?: "Error inesperado"
+                _error.value = e.message ?: "Unexpected error"
             } finally {
                 _isLoading.value = false
             }
@@ -103,22 +103,21 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 _sentRequestsIds.value = _sentRequestsIds.value + userId
 
             } catch (e: Exception) {
-                _error.value = "Error enviando solicitud: ${e.message}"
+                _error.value = "Error sending request: ${e.message}"
             }
         }
     }
 
 
-    fun sendCommunityRequest(userId: String) {
+    fun sendCommunityRequest(communityId: String) {
         viewModelScope.launch {
             try {
-                val response = repository.sendCommunityRequest(userId)
+                val response = repository.sendCommunityRequest(communityId)
                 _error.value = null
 
-                _sentRequestsCommunityIds.value = _sentRequestsCommunityIds.value + userId
-
+                _sentRequestsCommunityIds.value = _sentRequestsCommunityIds.value + communityId
             } catch (e: Exception) {
-                _error.value = "Error enviando solicitud: ${e.message}"
+                _error.value = "Error sending request: ${e.message}"
             }
         }
     }

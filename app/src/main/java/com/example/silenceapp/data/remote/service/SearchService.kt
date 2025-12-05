@@ -34,13 +34,13 @@ interface SearchService {
     ): List<User>
 
     @POST("/api/friend-request/request/{id}")
-    suspend fun postFriend_Request(
+    suspend fun postFriendRequest(
         @Path("id") id: String,
         @Header("Authorization") authorization: String
     ): FriendRequestResponse
 
     @POST("/api/community/{id}/members")
-    suspend fun postCommunity_Request(
+    suspend fun postCommunityRequest(
         @Path("id") id: String,
         @Header("Authorization") authorization: String
     ): Community_Member_RequestResponse

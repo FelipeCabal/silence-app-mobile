@@ -28,7 +28,7 @@ fun SearchBar(
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Hinted search people", color = Color.Gray) },
+        placeholder = { Text("Search for people", color = Color.Gray) },
         leadingIcon = {
             IconButton(onClick = onSearchClick) {
                 Icon(
@@ -42,7 +42,7 @@ fun SearchBar(
             .fillMaxWidth()
             .padding(16.dp),
         shape = CircleShape,
-        singleLine = true,   // ← SOLO UNA VEZ
+        singleLine = true,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.White,
             focusedContainerColor = Color.White,

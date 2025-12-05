@@ -119,7 +119,7 @@ fun CommunityCard(
                         enabled = !localRequestSent
                     ) {
                         Text(
-                            text = if (localRequestSent) "Ya Eres Miembro" else "Follow"
+                            text = if (localRequestSent) "Already a Member" else "Follow"
                         )
                     }
                 }
