@@ -31,22 +31,11 @@ import com.example.silenceapp.ui.theme.secondaryColor
 @Composable
 fun ProfileHeader(profile: ProfileResponse) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                modifier = Modifier.size(88.dp),
-                shape = CircleShape,
-                color = PaleMint
-            ) {
-                AsyncImage(
-                    model = profile.imagen ?: R.drawable.avatar_placeholder,
-                    contentDescription = "Avatar del usuario",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface),
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = profile.nombre,
@@ -68,26 +57,46 @@ fun ProfileHeader(profile: ProfileResponse) {
                     }
                 }
                 Text(
-                    text = profile.pais,
+                    text = profile.email,
                     style = MaterialTheme.typography.bodyMedium,
                     color = onBackgroundColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                val presentationMessage = profile.descripcion?.takeIf { it.isNotBlank() }
+                    ?: "¡Hola! Soy un apasionado por conectar con nuevas personas y compartir mis ideas en Silence."
+                Text(
+                    text = "Mensaje de presentación",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = secondaryColor,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = presentationMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = onBackgroundColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Surface(
+                modifier = Modifier.size(88.dp),
+                shape = CircleShape,
+                color = PaleMint
+            ) {
+                AsyncImage(
+                    model = profile.imagen ?: R.drawable.avatar_placeholder,
+                    contentDescription = "Avatar del usuario",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface),
+                )
             }
         }
-
-        profile.descripcion?.takeIf { it.isNotBlank() }?.let { description ->
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = onBackgroundColor,
-                modifier = Modifier.padding(end = 12.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

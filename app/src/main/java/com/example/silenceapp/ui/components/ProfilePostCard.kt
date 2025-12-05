@@ -56,7 +56,9 @@ fun ProfilePostCard(post: PostResponse) {
             .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = postBackgroundColor)
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(
                     modifier = Modifier

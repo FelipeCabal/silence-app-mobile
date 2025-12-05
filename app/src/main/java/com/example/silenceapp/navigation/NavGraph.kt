@@ -45,10 +45,13 @@ fun NavGraph(navController: NavHostController) {
 
 
     if (isAuthenticated == null) {
-        Box(modifier = androidx.compose.ui.Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
-        
+
         return
     }
 
@@ -62,8 +65,8 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") && 
-                     !(currentRoute?.startsWith("add-post") ?: false)
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") &&
+            !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
@@ -157,20 +160,21 @@ fun NavGraph(navController: NavHostController) {
                     PostScreen()
                 }
             }
-            composable ("$ROUTE_ADD_POST?imageUri = {imageUri}",
-            listOf( navArgument("imageUri"){
-            nullable = true
-            defaultValue = null
-        })
-        ){  backStack ->
-            val imageUri = backStack.arguments?.getString("imageUri")
-            CreatePostScreen(
-                navController = navController,
-                imageUri = imageUri,
-                authViewModel = authViewModel,
-                postViewModel = postViewModel
-            )
-        }
+            composable(
+                "$ROUTE_ADD_POST?imageUri = {imageUri}",
+                listOf(navArgument("imageUri") {
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStack ->
+                val imageUri = backStack.arguments?.getString("imageUri")
+                CreatePostScreen(
+                    navController = navController,
+                    imageUri = imageUri,
+                    authViewModel = authViewModel,
+                    postViewModel = postViewModel
+                )
+            }
         }
     }
 }

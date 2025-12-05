@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Shape
 import com.example.silenceapp.ui.theme.secondaryColor
 import com.example.silenceapp.viewmodel.RelationshipStatus
 
@@ -36,7 +38,8 @@ fun ProfileActionsBar(
             ) {
                 Button(
                     modifier = Modifier.weight(1f),
-                    onClick = onEdit
+                    onClick = onEdit,
+                    shape = buttonShape()
                 ) {
                     Text(text = "Editar perfil", fontWeight = FontWeight.Bold)
                 }
@@ -44,7 +47,8 @@ fun ProfileActionsBar(
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
                     onClick = onShare,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = secondaryColor)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = secondaryColor),
+                    shape = buttonShape()
                 ) {
                     Text(text = "Compartir", fontWeight = FontWeight.Bold)
                 }
@@ -57,12 +61,13 @@ fun ProfileActionsBar(
                 Button(
                     modifier = Modifier.weight(1f),
                     onClick = onPrimaryAction,
-                    enabled = relationshipStatus != RelationshipStatus.PENDING
+                    enabled = relationshipStatus != RelationshipStatus.PENDING,
+                    shape = buttonShape()
                 ) {
                     val label = when (relationshipStatus) {
-                        RelationshipStatus.NONE -> "Añadir"
+                        RelationshipStatus.NONE -> "Agregar"
                         RelationshipStatus.PENDING -> "Pendiente"
-                        RelationshipStatus.ACCEPTED -> "Eliminar amistad"
+                        RelationshipStatus.ACCEPTED -> "Eliminar"
                     }
                     Text(text = label, fontWeight = FontWeight.Bold)
                 }
@@ -70,23 +75,27 @@ fun ProfileActionsBar(
                 if (relationshipStatus == RelationshipStatus.ACCEPTED) {
                     OutlinedButton(
                         modifier = Modifier.weight(1f),
-                        onClick = onSecondaryAction
+                        onClick = onSecondaryAction,
+                        shape = buttonShape()
                     ) {
-                        Text(text = "Enviar mensaje", fontWeight = FontWeight.Bold)
+                        Text(text = "Mensaje", fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
             OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onReport,
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
-                )
+                ),
+                shape = buttonShape()
             ) {
                 Text(text = "Reportar usuario", fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+
+@Composable
+private fun buttonShape(): Shape = RoundedCornerShape(10.dp)

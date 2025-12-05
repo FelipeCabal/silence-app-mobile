@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.remote.client.ApiClient
+import com.example.silenceapp.data.remote.response.LikeResponse
 import com.example.silenceapp.data.remote.response.PostResponse
 import com.example.silenceapp.data.remote.response.ProfileResponse
 import com.example.silenceapp.data.repository.ProfileRepository
@@ -30,6 +31,7 @@ enum class RelationshipStatus {
 data class ProfileUiState(
     val profile: ProfileResponse? = null,
     val posts: List<PostResponse> = emptyList(),
+    val likedPosts: List<PostResponse> = emptyList(),
     val relationshipStatus: RelationshipStatus = RelationshipStatus.NONE,
     val isOwnProfile: Boolean = false,
     val isLoadingProfile: Boolean = false,
@@ -76,6 +78,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 activeUserId = targetUserId
                 uiState = uiState.copy(
                     profile = profileResponse,
+                    likedPosts = mapLikesToPosts(profileResponse.likes),
                     isOwnProfile = isOwn,
                     relationshipStatus = relationship,
                     isLoadingProfile = false,
@@ -113,7 +116,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 val response = repository.sendFriendRequest(targetUserId)
-                uiState = uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
+                uiState =
+                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = e.message)
             }
@@ -121,15 +125,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun cancelFriendRequest() {
-        val targetUserId = activeUserId ?: return
-        viewModelScope.launch {
-            try {
-                val response = repository.cancelFriendRequest(targetUserId)
-                uiState = uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
-            } catch (e: Exception) {
-                uiState = uiState.copy(errorMessage = e.message)
-            }
-        }
+        removeFriend()
     }
 
     fun removeFriend() {
@@ -137,8 +133,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 val response = repository.removeFriend(targetUserId)
-                val status = RelationshipStatus.from(response.status)
-                uiState = uiState.copy(relationshipStatus = status)
+                uiState =
+                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = e.message)
             }
@@ -171,6 +167,21 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         return when (requestedUserId.lowercase()) {
             "self", "me" -> ownId
             else -> requestedUserId
+        }
+    }
+
+    private fun mapLikesToPosts(likes: List<LikeResponse>): List<PostResponse> {
+        return likes.map { like ->
+            PostResponse(
+                id = like.id,
+                description = like.description,
+                imagen = like.imagen,
+                cantLikes = like.cantLikes,
+                cantComentarios = like.cantComentarios,
+                esAnonimo = like.esAnonimo,
+                createdAt = like.createdAt,
+                userName = "Autor no disponible"
+            )
         }
     }
 }

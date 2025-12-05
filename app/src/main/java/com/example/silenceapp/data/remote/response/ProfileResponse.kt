@@ -22,23 +22,23 @@ data class ProfileResponse(
     val comunidades: List<JsonElement> = emptyList(),
     val grupos: List<JsonElement> = emptyList(),
     val solicitudesAmistad: List<FriendRequests> = emptyList(),
-	val likes: List<LikeResponse> = emptyList(),
-	val createdAt: String,
-	val updatedAt: String,
-	@SerializedName("__v") val v: Int
+    val likes: List<LikeResponse> = emptyList(),
+    val createdAt: String,
+    val updatedAt: String,
+    @SerializedName("__v") val v: Int
 )
 
 data class FriendRequests(
-	val enviadas: List<JsonElement> = emptyList(),
-	val recibidas: List<JsonElement> = emptyList()
+    val enviadas: List<JsonElement> = emptyList(),
+    val recibidas: List<JsonElement> = emptyList()
 )
 
 data class LikeResponse(
-	@SerializedName("_id") val id: String,
-	val description: String,
-	val imagen: String?,
-	val cantLikes: Int,
-	val cantComentarios: Int,
-	val esAnonimo: Boolean,
-	val createdAt: String
+    @SerializedName("_id") val id: String,
+    val description: String,
+    val imagen: String?,
+    val cantLikes: Int,
+    val cantComentarios: Int,
+    val esAnonimo: Boolean,
+    val createdAt: String
 )
