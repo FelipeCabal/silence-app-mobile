@@ -19,4 +19,5 @@
     <string name="comments_content_description">Comments</string>
     <string name="error_loading_profile">Error loading profile</string>
     <string name="error_loading_posts">Error loading posts</string>
+    <string name="error_loading_liked_posts">Error loading liked posts</string>
 </resources>

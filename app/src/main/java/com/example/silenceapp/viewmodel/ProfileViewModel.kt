@@ -37,6 +37,7 @@ data class ProfileUiState(
     val isOwnProfile: Boolean = false,
     val isLoadingProfile: Boolean = false,
     val isLoadingPosts: Boolean = false,
+    val isLoadingLikedPosts: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -79,6 +80,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 activeUserId = targetUserId
                 uiState = uiState.copy(
                     profile = profileResponse,
+                    posts = profileResponse.publicaciones, // Use posts from profile response
                     likedPosts = mapLikesToPosts(profileResponse.likes),
                     isOwnProfile = isOwn,
                     relationshipStatus = relationship,
@@ -96,21 +98,32 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun loadUserPosts(userId: String) {
+    fun loadLikedPosts(userId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoadingPosts = true, errorMessage = null)
+            uiState = uiState.copy(isLoadingLikedPosts = true, errorMessage = null)
             try {
                 val ownId = ensureCurrentUserId()
                 val targetUserId = resolveTargetUserId(userId, ownId)
                 activeUserId = targetUserId
-                val posts = repository.getUserPosts(targetUserId)
-                uiState = uiState.copy(posts = posts, isLoadingPosts = false)
+
+                // Recargar el perfil para obtener los likes actualizados
+                val profileResponse = if (targetUserId == ownId) {
+                    repository.getCurrentUserProfile()
+                } else {
+                    repository.getUserProfile(targetUserId)
+                }
+
+                val likedPosts = mapLikesToPosts(profileResponse.likes)
+                uiState = uiState.copy(
+                    likedPosts = likedPosts,
+                    isLoadingLikedPosts = false
+                )
             } catch (e: Exception) {
                 uiState = uiState.copy(
-                    isLoadingPosts = false,
+                    isLoadingLikedPosts = false,
                     errorMessage =
                         e.message
-                            ?: getApplication<Application>().getString(R.string.error_loading_posts)
+                            ?: getApplication<Application>().getString(R.string.error_loading_liked_posts)
                 )
             }
         }

@@ -65,9 +65,9 @@ fun ProfileActionsBar(
                     shape = buttonShape()
                 ) {
                     val label = when (relationshipStatus) {
-                        RelationshipStatus.NONE -> "Agregar"
+                        RelationshipStatus.NONE -> "Añadir"
                         RelationshipStatus.PENDING -> "Pendiente"
-                        RelationshipStatus.ACCEPTED -> "Eliminar"
+                        RelationshipStatus.ACCEPTED -> "Eliminar amistad"
                     }
                     Text(text = label, fontWeight = FontWeight.Bold)
                 }
@@ -78,7 +78,7 @@ fun ProfileActionsBar(
                         onClick = onSecondaryAction,
                         shape = buttonShape()
                     ) {
-                        Text(text = "Mensaje", fontWeight = FontWeight.Bold)
+                        Text(text = "Enviar mensaje", fontWeight = FontWeight.Bold)
                     }
                 }
             }

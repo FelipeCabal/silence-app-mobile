@@ -20,7 +20,7 @@ data class ProfileResponse(
     val publicacionesCount: Int = 0,
     val relationshipStatus: RelationshipStatusResponse? = null,
     @SerializedName("ShowLikes") val showLikes: Boolean,
-    val publicaciones: List<JsonElement> = emptyList(),
+    val publicaciones: List<PostResponse> = emptyList(),
     val comunidades: List<JsonElement> = emptyList(),
     val grupos: List<JsonElement> = emptyList(),
     val solicitudesAmistad: List<FriendRequests> = emptyList(),

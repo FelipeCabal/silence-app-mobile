@@ -57,7 +57,13 @@ fun ProfileScreen(
 
     LaunchedEffect(userId) {
         profileViewModel.loadProfile(userId)
-        profileViewModel.loadUserPosts(userId)
+    }
+
+    // Cargar los liked posts cuando se cambia al filtro de likes
+    LaunchedEffect(selectedFilter) {
+        if (selectedFilter == PostFilter.LIKES && state.likedPosts.isEmpty()) {
+            profileViewModel.loadLikedPosts(userId)
+        }
     }
 
     when {
@@ -111,7 +117,7 @@ fun ProfileScreen(
                                 RelationshipStatus.ACCEPTED -> profileViewModel.removeFriend()
                             }
                         },
-                        onSecondaryAction = { },
+                        onSecondaryAction = { navController.navigate("create-chat") },
                         onReport = { profileViewModel.reportUser() },
                         onEdit = { navController.navigate("edit-profile") },
                         onShare = { profileViewModel.shareProfile() }
@@ -148,8 +154,13 @@ fun ProfileScreen(
                     PostFilter.LIKES -> state.likedPosts
                 }
 
+                val isLoading = when (selectedFilter) {
+                    PostFilter.POSTS -> state.isLoadingPosts
+                    PostFilter.LIKES -> state.isLoadingLikedPosts
+                }
+
                 when {
-                    state.isLoadingPosts -> {
+                    isLoading -> {
                         item {
                             Box(
                                 modifier = Modifier
@@ -190,7 +201,7 @@ fun ProfileScreen(
                     }
                 }
 
-                if (state.errorMessage != null && state.posts.isNotEmpty()) {
+                if (state.errorMessage != null && (state.posts.isNotEmpty() || state.likedPosts.isNotEmpty())) {
                     item {
                         Text(
                             text = state.errorMessage,

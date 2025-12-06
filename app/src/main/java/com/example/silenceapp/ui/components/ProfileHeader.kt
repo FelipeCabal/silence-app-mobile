@@ -97,31 +97,6 @@ fun ProfileHeader(profile: ProfileResponse) {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ProfileStat(label = stringResource(id = R.string.followers_label), value = profile.seguidores)
-            ProfileStat(label = stringResource(id = R.string.friends_label), value = profile.amigos)
-            ProfileStat(label = stringResource(id = R.string.posts_label), value = profile.publicacionesCount)
-        }
-    }
-}
 
-@Composable
-private fun ProfileStat(label: String, value: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            color = onBackgroundColor,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackgroundColor
-        )
     }
 }
