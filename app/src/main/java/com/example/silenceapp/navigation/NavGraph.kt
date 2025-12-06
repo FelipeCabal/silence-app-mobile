@@ -64,7 +64,7 @@ fun NavGraph(navController: NavHostController) {
         return
     }
 
-    // TODO: Cambiar esto a la ruta de la página de inicio cuando se implemente
+
     val homescreen = "profile/self"
     val start = if (isAuthenticated == true) homescreen else "login"
 
