@@ -29,9 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.silenceapp.R
 import com.example.silenceapp.ui.components.ProfileActionsBar
 import com.example.silenceapp.ui.components.ProfileHeader
 import com.example.silenceapp.ui.components.ProfilePostCard
@@ -67,7 +69,11 @@ fun ProfileScreen(
 
         state.errorMessage != null && state.profile == null -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.errorMessage ?: "Error", color = onBackgroundColor)
+                Text(
+                    text = state.errorMessage
+                        ?: stringResource(id = R.string.generic_error_message),
+                    color = onBackgroundColor
+                )
             }
         }
 
@@ -75,7 +81,10 @@ fun ProfileScreen(
             val profile = state.profile
             if (profile == null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "No se pudo cargar el perfil", color = onBackgroundColor)
+                    Text(
+                        text = stringResource(id = R.string.profile_load_failed),
+                        color = onBackgroundColor
+                    )
                 }
                 return
             }
@@ -120,14 +129,14 @@ fun ProfileScreen(
                     ) {
                         IconToggle(
                             icon = Icons.Filled.GridOn,
-                            contentDescription = "Publicaciones del usuario",
+                            contentDescription = stringResource(id = R.string.user_posts_content_description),
                             isSelected = selectedFilter == PostFilter.POSTS,
                             onClick = { selectedFilter = PostFilter.POSTS }
                         )
                         Spacer(modifier = Modifier.size(24.dp))
                         IconToggle(
                             icon = Icons.Filled.FavoriteBorder,
-                            contentDescription = "Publicaciones con me gusta",
+                            contentDescription = stringResource(id = R.string.liked_posts_content_description),
                             isSelected = selectedFilter == PostFilter.LIKES,
                             onClick = { selectedFilter = PostFilter.LIKES }
                         )
@@ -162,7 +171,11 @@ fun ProfileScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = if (selectedFilter == PostFilter.POSTS) "Aún no hay publicaciones" else "Aún no hay publicaciones con me gusta",
+                                    text = if (selectedFilter == PostFilter.POSTS) {
+                                        stringResource(id = R.string.empty_posts_message)
+                                    } else {
+                                        stringResource(id = R.string.empty_liked_posts_message)
+                                    },
                                     color = onBackgroundColor
                                 )
                             }

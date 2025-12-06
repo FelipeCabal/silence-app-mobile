@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Silence</string>
+    <string name="generic_error_message">Something went wrong</string>
+    <string name="profile_load_failed">Unable to load profile</string>
+    <string name="user_posts_content_description">User posts</string>
+    <string name="liked_posts_content_description">Liked posts</string>
+    <string name="empty_posts_message">No posts yet</string>
+    <string name="empty_liked_posts_message">No liked posts yet</string>
+    <string name="default_presentation_message">Hi! I love connecting with new people and sharing my ideas on Silence.</string>
+    <string name="presentation_message_label">Presentation message</string>
+    <string name="user_avatar_content_description">User avatar</string>
+    <string name="followers_label">Followers</string>
+    <string name="friends_label">Friends</string>
+    <string name="posts_label">Posts</string>
+    <string name="anonymous_user">Anonymous</string>
+    <string name="unknown_author">Author unavailable</string>
+    <string name="post_image_content_description">Post image</string>
+    <string name="likes_content_description">Likes</string>
+    <string name="comments_content_description">Comments</string>
+    <string name="error_loading_profile">Error loading profile</string>
+    <string name="error_loading_posts">Error loading posts</string>
 </resources>

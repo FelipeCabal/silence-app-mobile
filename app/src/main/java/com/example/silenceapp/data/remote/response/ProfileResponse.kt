@@ -11,7 +11,8 @@ data class ProfileResponse(
     val fechaNto: String,
     val sexo: String,
     val pais: String,
-    val imagen: String?,
+    @JsonAdapter(ImagenDeserializer::class)
+    val imagen: List<String?>?,
     val username: String? = null,
     val descripcion: String? = null,
     val seguidores: Int = 0,
@@ -37,7 +38,8 @@ data class FriendRequests(
 data class LikeResponse(
     @SerializedName("_id") val id: String,
     val description: String,
-    val imagen: String?,
+    @JsonAdapter(ImagenDeserializer::class)
+    val imagen: List<String?>?,
     val cantLikes: Int,
     val cantComentarios: Int,
     val esAnonimo: Boolean,

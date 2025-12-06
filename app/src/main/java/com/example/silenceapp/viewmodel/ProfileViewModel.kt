@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.silenceapp.R
 import com.example.silenceapp.data.datastore.AuthDataStore
 import com.example.silenceapp.data.remote.client.ApiClient
 import com.example.silenceapp.data.remote.response.LikeResponse
@@ -87,7 +88,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoadingProfile = false,
-                    errorMessage = e.message ?: "Error al cargar el perfil"
+                    errorMessage =
+                        e.message
+                            ?: getApplication<Application>().getString(R.string.error_loading_profile)
                 )
             }
         }
@@ -105,7 +108,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoadingPosts = false,
-                    errorMessage = e.message ?: "Error al cargar publicaciones"
+                    errorMessage =
+                        e.message
+                            ?: getApplication<Application>().getString(R.string.error_loading_posts)
                 )
             }
         }
@@ -114,6 +119,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun sendFriendRequest() {
         val targetUserId = activeUserId ?: return
         viewModelScope.launch {
+            uiState = uiState.copy(errorMessage = null)
             try {
                 val response = repository.sendFriendRequest(targetUserId)
                 uiState =
@@ -125,12 +131,23 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun cancelFriendRequest() {
-        removeFriend()
+        val targetUserId = activeUserId ?: return
+        viewModelScope.launch {
+            uiState = uiState.copy(errorMessage = null)
+            try {
+                val response = repository.cancelFriendRequest(targetUserId)
+                uiState =
+                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
+            } catch (e: Exception) {
+                uiState = uiState.copy(errorMessage = e.message)
+            }
+        }
     }
 
     fun removeFriend() {
         val targetUserId = activeUserId ?: return
         viewModelScope.launch {
+            uiState = uiState.copy(errorMessage = null)
             try {
                 val response = repository.removeFriend(targetUserId)
                 uiState =
@@ -144,6 +161,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun reportUser(reason: String? = null) {
         val targetUserId = activeUserId ?: return
         viewModelScope.launch {
+            uiState = uiState.copy(errorMessage = null)
             try {
                 repository.reportUser(targetUserId, reason)
             } catch (e: Exception) {
@@ -160,7 +178,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         if (currentUserId == null) {
             currentUserId = repository.getCurrentUserProfile().id
         }
-        return currentUserId ?: ""
+        return currentUserId
+            ?: throw IllegalStateException("Unable to fetch current user id")
     }
 
     private fun resolveTargetUserId(requestedUserId: String, ownId: String): String {
@@ -174,13 +193,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         return likes.map { like ->
             PostResponse(
                 id = like.id,
+                owner = null,
                 description = like.description,
                 imagen = like.imagen,
                 cantLikes = like.cantLikes,
                 cantComentarios = like.cantComentarios,
                 esAnonimo = like.esAnonimo,
                 createdAt = like.createdAt,
-                userName = "Autor no disponible"
             )
         }
     }

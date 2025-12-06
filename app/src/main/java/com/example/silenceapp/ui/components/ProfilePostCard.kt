@@ -28,10 +28,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.silenceapp.R
 import com.example.silenceapp.data.remote.response.PostResponse
 import com.example.silenceapp.ui.theme.PaleMint
 import com.example.silenceapp.ui.theme.onBackgroundColor
@@ -45,7 +47,7 @@ import java.time.format.FormatStyle
 fun ProfilePostCard(post: PostResponse) {
     val context = LocalContext.current
     val formattedDate = runCatching {
-        post.createdAt?.let { date ->
+        post.createdAt.takeIf { it.isNotBlank() }?.let { date ->
             OffsetDateTime.parse(date).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
         }
     }.getOrNull() ?: ""
@@ -60,6 +62,13 @@ fun ProfilePostCard(post: PostResponse) {
             .fillMaxWidth()
             .padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val displayName = when {
+                    post.esAnonimo -> stringResource(id = R.string.anonymous_user)
+                    !post.owner?.nombre.isNullOrBlank() -> post.owner?.nombre
+                    else -> stringResource(id = R.string.unknown_author)
+                }
+                val initial = displayName?.firstOrNull()?.uppercase() ?: "U"
+
                 Column(
                     modifier = Modifier
                         .size(44.dp)
@@ -69,7 +78,7 @@ fun ProfilePostCard(post: PostResponse) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = post.userName.firstOrNull()?.uppercase() ?: "U",
+                        text = initial,
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Black,
                         fontWeight = FontWeight.Bold
@@ -78,7 +87,7 @@ fun ProfilePostCard(post: PostResponse) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (post.esAnonimo) "Anónimo" else post.userName,
+                        text = displayName ?: stringResource(id = R.string.unknown_author),
                         style = MaterialTheme.typography.titleMedium,
                         color = onBackgroundColor,
                         fontWeight = FontWeight.Bold
@@ -93,7 +102,7 @@ fun ProfilePostCard(post: PostResponse) {
                 }
             }
 
-            post.description?.let { description ->
+            post.description.let { description ->
                 if (description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
@@ -104,7 +113,7 @@ fun ProfilePostCard(post: PostResponse) {
                 }
             }
 
-            post.imagen?.let { imageUrl ->
+            post.imagen?.firstOrNull { !it.isNullOrBlank() }?.let { imageUrl ->
                 Spacer(modifier = Modifier.height(12.dp))
                 Image(
                     painter = rememberAsyncImagePainter(
@@ -113,7 +122,7 @@ fun ProfilePostCard(post: PostResponse) {
                             .crossfade(true)
                             .build()
                     ),
-                    contentDescription = "Imagen de la publicación",
+                    contentDescription = stringResource(id = R.string.post_image_content_description),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
@@ -130,7 +139,7 @@ fun ProfilePostCard(post: PostResponse) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Outlined.Favorite,
-                        contentDescription = "Likes",
+                        contentDescription = stringResource(id = R.string.likes_content_description),
                         tint = secondaryColor
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -140,7 +149,7 @@ fun ProfilePostCard(post: PostResponse) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Outlined.ChatBubbleOutline,
-                        contentDescription = "Comentarios",
+                        contentDescription = stringResource(id = R.string.comments_content_description),
                         tint = Color.Gray
                     )
                     Spacer(modifier = Modifier.width(8.dp))

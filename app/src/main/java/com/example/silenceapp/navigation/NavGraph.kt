@@ -18,7 +18,6 @@ import com.example.silenceapp.view.chat.ChatListScreen
 import com.example.silenceapp.view.chat.ChatScreen
 import com.example.silenceapp.view.chat.CreateChatScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
-import com.example.silenceapp.view.posts.PostScreen
 import com.example.silenceapp.view.profile.EditProfileScreen
 import com.example.silenceapp.view.profile.ProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
@@ -36,7 +35,6 @@ import com.example.silenceapp.ui.components.TopBar
 import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
-import com.example.silenceapp.view.home.HomeScreen
 import com.example.silenceapp.viewmodel.ProfileViewModel
 import com.example.silenceapp.view.posts.PostDetailScreen
 import com.example.silenceapp.view.posts.PostScreenSimple
@@ -66,7 +64,7 @@ fun NavGraph(navController: NavHostController) {
         return
     }
 
-    //Debe cambiar esto cuando se implemente la homepage
+    // TODO: Cambiar esto a la ruta de la página de inicio cuando se implemente
     val homescreen = "profile/self"
     val start = if (isAuthenticated == true) homescreen else "login"
 

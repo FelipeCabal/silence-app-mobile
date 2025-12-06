@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,9 +66,9 @@ fun ProfileHeader(profile: ProfileResponse) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 val presentationMessage = profile.descripcion?.takeIf { it.isNotBlank() }
-                    ?: "¡Hola! Soy un apasionado por conectar con nuevas personas y compartir mis ideas en Silence."
+                    ?: stringResource(id = R.string.default_presentation_message)
                 Text(
-                    text = "Mensaje de presentación",
+                    text = stringResource(id = R.string.presentation_message_label),
                     style = MaterialTheme.typography.bodySmall,
                     color = secondaryColor,
                     fontWeight = FontWeight.SemiBold
@@ -86,9 +87,10 @@ fun ProfileHeader(profile: ProfileResponse) {
                 shape = CircleShape,
                 color = PaleMint
             ) {
+                val profileImage = profile.imagen?.firstOrNull()
                 AsyncImage(
-                    model = profile.imagen ?: R.drawable.avatar_placeholder,
-                    contentDescription = "Avatar del usuario",
+                    model = profileImage ?: R.drawable.avatar_placeholder,
+                    contentDescription = stringResource(id = R.string.user_avatar_content_description),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(CircleShape)
@@ -101,9 +103,9 @@ fun ProfileHeader(profile: ProfileResponse) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            ProfileStat(label = "Seguidores", value = profile.seguidores)
-            ProfileStat(label = "Amigos", value = profile.amigos)
-            ProfileStat(label = "Publicaciones", value = profile.publicacionesCount)
+            ProfileStat(label = stringResource(id = R.string.followers_label), value = profile.seguidores)
+            ProfileStat(label = stringResource(id = R.string.friends_label), value = profile.amigos)
+            ProfileStat(label = stringResource(id = R.string.posts_label), value = profile.publicacionesCount)
         }
     }
 }

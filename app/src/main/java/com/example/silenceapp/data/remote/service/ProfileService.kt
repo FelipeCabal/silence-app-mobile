@@ -37,6 +37,12 @@ interface ProfileService {
         @Body body: FriendRequestDto
     ): RelationshipStatusResponse
 
+    @DELETE("friends/request/{id}")
+    suspend fun cancelFriendRequest(
+        @Header("Authorization") authorization: String,
+        @Path("id") userId: String
+    ): RelationshipStatusResponse
+
     @DELETE("friends/{id}")
     suspend fun removeFriend(
         @Header("Authorization") authorization: String,
