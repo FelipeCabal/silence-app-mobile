@@ -154,7 +154,7 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    NotificationsScreen()
+                    NotificationsScreen(authViewModel = authViewModel)
                 }
             }
             composable("chats") {

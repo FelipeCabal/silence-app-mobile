@@ -176,6 +176,25 @@ sealed class SocketEvent {
         val count: Int
     ) : SocketEvent()
     
+    // ==================== EVENTOS DE NOTIFICACIONES ====================
+    
+    /**
+     * Nueva notificación recibida
+     */
+    data class NotificationReceived(
+        val id: String,
+        val message: String,
+        val senderId: String,
+        val senderName: String,
+        val senderImage: String?,
+        val receiverId: String,
+        val receiverName: String,
+        val type: Int,
+        val isRead: Boolean,
+        val createdAt: String,
+        val updatedAt: String
+    ) : SocketEvent()
+    
     // ==================== EVENTOS DE SISTEMA ====================
     
     /**

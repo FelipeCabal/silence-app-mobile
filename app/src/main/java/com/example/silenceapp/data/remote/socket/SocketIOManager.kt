@@ -32,6 +32,9 @@ class SocketIOManager private constructor(
     private val _chatEvents = MutableSharedFlow<SocketEvent>(replay = 0)
     val chatEvents: SharedFlow<SocketEvent> = _chatEvents
     
+    private val _notificationEvents = MutableSharedFlow<SocketEvent>(replay = 0)
+    val notificationEvents: SharedFlow<SocketEvent> = _notificationEvents
+    
     private val scope = CoroutineScope(Dispatchers.IO)
     
     companion object {
@@ -52,6 +55,166 @@ class SocketIOManager private constructor(
                     Log.d(TAG, "✨ Nueva instancia de SocketIOManager creada")
                 }
             }
+        }
+    }
+    
+    /**
+     * Conectar al namespace de notificaciones
+     * @param token JWT token para autenticación
+     */
+    fun connectToNotifications(token: String) {
+        try {
+            Log.d(TAG, "🔔 connectToNotifications() iniciado")
+            Log.d(TAG, "   Token recibido: ${token.take(50)}...")
+            Log.d(TAG, "   Token length: ${token.length}")
+            
+            // Si ya hay un socket conectado, no crear uno nuevo
+            if (notificationSocket?.connected() == true) {
+                Log.d(TAG, "✅ Notification socket ya está conectado. Socket ID: ${notificationSocket?.id()}")
+                return
+            }
+            
+            // Si hay un socket pero no está conectado, desconectarlo primero
+            if (notificationSocket != null) {
+                Log.d(TAG, "🔌 Limpiando notification socket anterior...")
+                notificationSocket?.off()
+                notificationSocket?.disconnect()
+                notificationSocket = null
+            }
+            
+            Log.d(TAG, "🔔 Iniciando conexión a /notifications...")
+            
+            // Remover /api/ del BASE_URL para Socket.IO
+            val socketBaseUrl = baseUrl.replace("/api/", "/").replace("/api", "")
+            Log.d(TAG, "   Base URL: $socketBaseUrl")
+            
+            // Configurar opciones de Socket.IO
+            val options = IO.Options().apply {
+                query = "token=$token"
+                reconnection = true
+                reconnectionAttempts = Integer.MAX_VALUE
+                reconnectionDelay = 1000
+                reconnectionDelayMax = 5000
+                transports = arrayOf("websocket")
+                timeout = 20000
+            }
+            
+            // Construir URL completa
+            val url = if (socketBaseUrl.endsWith("/")) {
+                "${socketBaseUrl.dropLast(1)}$NOTIFICATION_NAMESPACE"
+            } else {
+                "$socketBaseUrl$NOTIFICATION_NAMESPACE"
+            }
+            
+            Log.d(TAG, "🔔 URL completa: $url")
+            Log.d(TAG, "🔔 Query: token=${token.take(20)}...")
+            
+            // Crear socket
+            notificationSocket = IO.socket(url, options).apply {
+                registerNotificationListeners()
+                connect()
+            }
+            
+            Log.d(TAG, "✅ Socket de notificaciones creado e iniciando conexión...")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error al conectar a notificaciones: ${e.message}", e)
+            e.printStackTrace()
+        }
+    }
+    
+    /**
+     * Registrar listeners para notificaciones
+     */
+    private fun Socket.registerNotificationListeners() {
+        // Eventos de sistema
+        on(Socket.EVENT_CONNECT) {
+            Log.d(TAG, "✅ Conectado a /notifications")
+            Log.d(TAG, "✅ Notification Socket ID: ${this.id()}")
+        }
+        
+        on(Socket.EVENT_DISCONNECT) { args ->
+            val reason = args.firstOrNull()
+            Log.d(TAG, "❌ Desconectado de /notifications. Razón: $reason")
+        }
+        
+        on(Socket.EVENT_CONNECT_ERROR) { args ->
+            val error = args.firstOrNull()
+            Log.e(TAG, "❌ Error de conexión /notifications: $error")
+        }
+        
+        // Evento: notification (del backend)
+        on("notification", onNotificationReceived)
+    }
+    
+    private val onNotificationReceived = Emitter.Listener { args ->
+        try {
+            Log.d(TAG, "🔔 onNotificationReceived LISTENER ACTIVADO")
+            val data = args[0] as JSONObject
+            Log.d(TAG, "🔔 Notification JSON completo: $data")
+            
+            val sender = data.getJSONObject("sender")
+            val receiver = data.getJSONObject("receiver")
+            
+            // Parsear _id que puede venir como string o como {"$oid": "..."}
+            fun parseId(obj: JSONObject, key: String): String {
+                return try {
+                    val idValue = obj.get(key)
+                    when (idValue) {
+                        is String -> idValue
+                        is JSONObject -> idValue.getString("\$oid")
+                        else -> idValue.toString()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parseando $key: ${e.message}")
+                    ""
+                }
+            }
+            
+            // Parsear imagen que puede ser null o string
+            fun parseImagen(obj: JSONObject, key: String): String? {
+                return try {
+                    if (obj.isNull(key)) null
+                    else obj.optString(key, null)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            
+            val notificationId = parseId(data, "_id")
+            val senderId = parseId(sender, "_id")
+            val senderName = sender.getString("nombre")
+            val senderImage = parseImagen(sender, "imagen")
+            
+            // El receiver tiene userId en lugar de _id
+            val receiverId = receiver.optString("userId", receiver.optString("_id", ""))
+            val receiverName = receiver.getString("nombre")
+            
+            Log.d(TAG, "🔔 Notification parseada:")
+            Log.d(TAG, "   ID: $notificationId")
+            Log.d(TAG, "   Sender: $senderName ($senderId)")
+            Log.d(TAG, "   Receiver: $receiverName ($receiverId)")
+            Log.d(TAG, "   Message: ${data.getString("message")}")
+            
+            val event = SocketEvent.NotificationReceived(
+                id = notificationId,
+                message = data.getString("message"),
+                senderId = senderId,
+                senderName = senderName,
+                senderImage = senderImage,
+                receiverId = receiverId,
+                receiverName = receiverName,
+                type = data.getInt("type"),
+                isRead = data.optBoolean("read", false),
+                createdAt = data.getString("createdAt"),
+                updatedAt = data.getString("updatedAt")
+            )
+            
+            emitNotificationEvent(event)
+            Log.d(TAG, "✅ Notification event emitido correctamente")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error parseando 'notification': ${e.message}", e)
+            e.printStackTrace()
         }
     }
     
@@ -548,6 +711,21 @@ class SocketIOManager private constructor(
     }
     
     /**
+     * Desconectar solo notificaciones
+     */
+    fun disconnectNotifications() {
+        Log.d(TAG, "🔌 Desconectando notificaciones...")
+        
+        notificationSocket?.apply {
+            off()
+            disconnect()
+        }
+        notificationSocket = null
+        
+        Log.d(TAG, "✅ Notificaciones desconectadas")
+    }
+    
+    /**
      * Verificar si está conectado
      */
     fun isConnected(): Boolean {
@@ -560,6 +738,15 @@ class SocketIOManager private constructor(
     private fun emitEvent(event: SocketEvent) {
         scope.launch {
             _chatEvents.emit(event)
+        }
+    }
+    
+    /**
+     * Emitir evento de notificación
+     */
+    private fun emitNotificationEvent(event: SocketEvent) {
+        scope.launch {
+            _notificationEvents.emit(event)
         }
     }
 }

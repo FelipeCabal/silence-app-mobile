@@ -98,13 +98,26 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun logout() {
         viewModelScope.launch {
+            android.util.Log.d("AuthViewModel", "🚪 Cerrando sesión...")
+            
+            // Desconectar WebSocket
+            try {
+                val socketManager = com.example.silenceapp.data.remote.socket.SocketIOManager.getInstance("https://silence-app-back-production.up.railway.app/api/")
+                socketManager.disconnect()
+                android.util.Log.d("AuthViewModel", "✅ WebSocket desconectado")
+            } catch (e: Exception) {
+                android.util.Log.e("AuthViewModel", "❌ Error al desconectar WebSocket", e)
+            }
+            
             // Limpiar BD local al cerrar sesión
             withContext(Dispatchers.IO) {
                 database.clearAllTables()
+                android.util.Log.d("AuthViewModel", "✅ Base de datos limpiada")
             }
             
             store.saveToken("")
             store.saveUserId("")
+            android.util.Log.d("AuthViewModel", "✅ Token y userId limpiados")
         }
     }
     fun getProfile(onResult: (ProfileResponse?) -> Unit) {
