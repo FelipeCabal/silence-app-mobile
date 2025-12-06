@@ -48,7 +48,7 @@ fun CommunityCard(
                 shape = RoundedCornerShape(16.dp)
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1E1E1E))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column {
 
@@ -91,7 +91,7 @@ fun CommunityCard(
                 Text(
                     community.nombre,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.secondary
                 )
                 Spacer(modifier = Modifier.height(10.dp))
 

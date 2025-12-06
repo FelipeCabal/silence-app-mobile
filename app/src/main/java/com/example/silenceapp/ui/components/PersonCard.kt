@@ -17,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import com.example.silenceapp.data.remote.response.User
+import androidx.compose.ui.res.painterResource
+import com.example.silenceapp.R
 
 
 @Composable
@@ -40,7 +42,12 @@ fun PersonCard(
         Spacer(modifier = Modifier.width(40.dp))
 
         Image(
-            painter = rememberAsyncImagePainter(user.imagen ?: ""),
+            painter = rememberAsyncImagePainter(
+                model = user.imagen,
+                error = painterResource(R.drawable.avatar_placeholder),
+                fallback = painterResource(R.drawable.avatar_placeholder),
+                placeholder = painterResource(R.drawable.avatar_placeholder)
+            ),
             contentDescription = null,
             modifier = Modifier
                 .padding(vertical = 6.dp)
@@ -57,7 +64,7 @@ fun PersonCard(
             Text(
                 text = user.nombre,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.secondary
             )
 
             Text(

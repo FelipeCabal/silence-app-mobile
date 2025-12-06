@@ -17,7 +17,7 @@ import com.example.silenceapp.ui.components.CommunityCard
 import com.example.silenceapp.ui.components.PersonCard
 import com.example.silenceapp.data.remote.response.Community
 import com.example.silenceapp.data.remote.response.User
-
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun UserList(
@@ -69,7 +69,7 @@ fun SearchScreen(viewModel: SearchViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
 
