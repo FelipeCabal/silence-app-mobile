@@ -57,7 +57,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadProfile(userId: String) {
         viewModelScope.launch {
-            uiState = uiState.copy(isLoadingProfile = true, errorMessage = null)
+            uiState = uiState.copy(
+                isLoadingProfile = true,
+                isLoadingPosts = true,
+                errorMessage = null
+            )
             try {
                 val ownId = ensureCurrentUserId()
                 val targetUserId = resolveTargetUserId(userId, ownId)
@@ -78,18 +82,28 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 }
 
                 activeUserId = targetUserId
+                val (postsWithOwner, postsError) = try {
+                    resolveUserPosts(profileResponse, targetUserId) to null
+                } catch (e: Exception) {
+                    emptyList<PostResponse>() to (
+                            e.message ?: getApplication<Application>().getString(R.string.error_loading_posts)
+                            )
+                }
                 uiState = uiState.copy(
                     profile = profileResponse,
-                    posts = profileResponse.publicaciones, // Use posts from profile response
                     likedPosts = mapLikesToPosts(profileResponse.likes),
+                    posts = postsWithOwner,
                     isOwnProfile = isOwn,
                     relationshipStatus = relationship,
                     isLoadingProfile = false,
-                    errorMessage = null
+                    isLoadingPosts = false,
+                    errorMessage = postsError
                 )
+
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoadingProfile = false,
+                    isLoadingPosts = false,
                     errorMessage =
                         e.message
                             ?: getApplication<Application>().getString(R.string.error_loading_profile)
@@ -214,6 +228,28 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 esAnonimo = like.esAnonimo,
                 createdAt = like.createdAt,
             )
+        }
+    }
+
+    private suspend fun resolveUserPosts(
+        profileResponse: ProfileResponse,
+        targetUserId: String
+    ): List<PostResponse> {
+        val postsFromProfile = profileResponse.publicaciones
+        return if (postsFromProfile.isNotEmpty()) {
+            attachOwnerToPosts(postsFromProfile, profileResponse)
+        } else {
+            val remotePosts = repository.getUserPosts(targetUserId)
+            attachOwnerToPosts(remotePosts, profileResponse)
+        }
+    }
+
+    private fun attachOwnerToPosts(
+        posts: List<PostResponse>,
+        owner: ProfileResponse
+    ): List<PostResponse> {
+        return posts.map { post ->
+            if (post.owner == null) post.copy(owner = owner) else post
         }
     }
 }
