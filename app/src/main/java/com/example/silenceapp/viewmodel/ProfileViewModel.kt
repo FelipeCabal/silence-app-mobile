@@ -249,7 +249,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         publicaciones: List<com.example.silenceapp.data.remote.response.PublicacionSummary>,
         owner: ProfileResponse
     ): List<PostResponse> {
-        return publicaciones.map { pub ->
+        return publicaciones.reversed().map { pub ->
             PostResponse(
                 id = pub.id,
                 owner = owner,
