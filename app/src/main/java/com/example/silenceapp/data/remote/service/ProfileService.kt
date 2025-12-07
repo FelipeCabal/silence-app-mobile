@@ -31,10 +31,10 @@ interface ProfileService {
         @Path("id") userId: String
     ): RelationshipStatusResponse
 
-    @POST("friends/request")
+    @POST("friend-request/request/{id}")
     suspend fun sendFriendRequest(
         @Header("Authorization") authorization: String,
-        @Body body: FriendRequestDto
+        @Path("id") userId: String
     ): RelationshipStatusResponse
 
     @DELETE("friends/request/{id}")

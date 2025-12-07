@@ -80,18 +80,28 @@ fun ProfileActionsBar(
                     ) {
                         Text(text = "Enviar mensaje", fontWeight = FontWeight.Bold)
                     }
-                }
-            }
+                } else if(relationshipStatus == RelationshipStatus.PENDING){
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = onSecondaryAction,
+                        shape = buttonShape()
+                    ) {
+                        Text(text = "Cancelar solicitud", fontWeight = FontWeight.Bold)
+                    }
 
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onReport,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                shape = buttonShape()
-            ) {
-                Text(text = "Reportar usuario", fontWeight = FontWeight.Bold)
+                } else {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = onReport,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        shape = buttonShape()
+                    ) {
+                        Text(text = "Reportar usuario", fontWeight = FontWeight.Bold)
+                    }
+                }
+
             }
         }
     }

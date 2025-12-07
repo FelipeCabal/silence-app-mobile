@@ -223,6 +223,9 @@ fun ProfileScreen(
                                 },
                                 onLikeClick = { postId ->
                                     // TODO: Implementar toggle like en ProfileViewModel
+                                },
+                                onProfileClick = { userId ->
+                                    navController.navigate("profile/$userId")
                                 }
                             )
                             Spacer(modifier = Modifier.height(12.dp))

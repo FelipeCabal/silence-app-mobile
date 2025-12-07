@@ -77,7 +77,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     RelationshipStatus.ACCEPTED
                 } else {
                     val status = profileResponse.relationshipStatus?.status
-                        ?: repository.getRelationshipStatus(targetUserId).status
+                        ?: try {
+                            repository.getRelationshipStatus(targetUserId).status
+                        } catch (e: Exception) {
+                            // Si hay error 404, significa que no hay relación
+                            null
+                        }
                     RelationshipStatus.from(status)
                 }
 
@@ -149,9 +154,14 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             uiState = uiState.copy(errorMessage = null)
             try {
                 val response = repository.sendFriendRequest(targetUserId)
-                uiState =
-                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
+                println("Friend request sent. Response status: ${response.status}")
+                // Actualizar el estado a PENDING después de enviar la solicitud exitosamente
+                uiState = uiState.copy(
+                    relationshipStatus = RelationshipStatus.PENDING
+                )
             } catch (e: Exception) {
+                println("Error sending friend request: ${e.message}")
+                e.printStackTrace()
                 uiState = uiState.copy(errorMessage = e.message)
             }
         }
@@ -163,8 +173,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             uiState = uiState.copy(errorMessage = null)
             try {
                 val response = repository.cancelFriendRequest(targetUserId)
-                uiState =
-                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
+                // Actualizar el estado a NONE después de cancelar la solicitud
+                uiState = uiState.copy(
+                    relationshipStatus = RelationshipStatus.NONE
+                )
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = e.message)
             }
@@ -177,8 +189,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             uiState = uiState.copy(errorMessage = null)
             try {
                 val response = repository.removeFriend(targetUserId)
-                uiState =
-                    uiState.copy(relationshipStatus = RelationshipStatus.from(response.status))
+                // Actualizar el estado a NONE después de eliminar la amistad
+                uiState = uiState.copy(
+                    relationshipStatus = RelationshipStatus.NONE
+                )
             } catch (e: Exception) {
                 uiState = uiState.copy(errorMessage = e.message)
             }

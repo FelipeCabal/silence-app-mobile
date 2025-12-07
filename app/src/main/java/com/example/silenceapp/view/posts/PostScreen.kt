@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.silenceapp.ui.components.PostCard
 import com.example.silenceapp.viewmodel.PostViewModel
 
@@ -37,6 +38,7 @@ import com.example.silenceapp.viewmodel.PostViewModel
 @Composable
 fun PostScreenSimple(
     viewModel: PostViewModel = viewModel(),
+    navController: NavController,
     onPostClick: (String) -> Unit,
     onCreatePostClick: () -> Unit
 ) {
@@ -104,6 +106,9 @@ fun PostScreenSimple(
                                 onClick = onPostClick,
                                 onLikeClick = { remoteId ->
                                     viewModel.toggleLike(remoteId)
+                                },
+                                onProfileClick = { userId ->
+                                    navController.navigate("profile/$userId")
                                 }
                             )
                         }

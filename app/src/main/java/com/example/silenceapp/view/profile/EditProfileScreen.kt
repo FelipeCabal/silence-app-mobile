@@ -225,6 +225,7 @@ fun EditProfileScreen(
                         .error(R.drawable.avatar_placeholder)
                         .build(),
                     contentDescription = "Profile Picture",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)

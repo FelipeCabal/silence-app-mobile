@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -90,8 +91,9 @@ fun ProfileHeader(profile: ProfileResponse) {
                 AsyncImage(
                     model = profileImage ?: R.drawable.avatar_placeholder,
                     contentDescription = stringResource(id = R.string.user_avatar_content_description),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface),
                 )

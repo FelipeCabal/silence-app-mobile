@@ -1,7 +1,9 @@
 package com.example.silenceapp.data.remote.response
 
+import com.google.gson.annotations.SerializedName
+
 data class User(
-    val id: String,
+    @SerializedName(value = "_id", alternate = ["id"]) val id: String = "",
     val nombre: String = "",
     val imagen: String? = null,
     val email: String = "",

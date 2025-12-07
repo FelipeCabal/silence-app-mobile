@@ -18,17 +18,30 @@ import com.example.silenceapp.ui.components.PersonCard
 import com.example.silenceapp.data.remote.response.Community
 import com.example.silenceapp.data.remote.response.User
 import androidx.compose.material3.MaterialTheme
+import androidx.navigation.NavController
 
 @Composable
 fun UserList(
     users: List<User>,
-    onFollow: (User) -> Unit
+    onFollow: (User) -> Unit,
+    navController: NavController
 ) {
     LazyColumn {
         items(users) { user ->
             PersonCard(
                 user = user,
-                onFollow = { onFollow(user) }
+                onFollow = { onFollow(user) },
+                onProfileClick = { userId ->
+                    println("Navigating to profile from UserList: $userId")
+                    try {
+                        navController.navigate("profile/$userId") {
+                            launchSingleTop = true
+                        }
+                    } catch (e: Exception) {
+                        println("Navigation error: ${e.message}")
+                        e.printStackTrace()
+                    }
+                }
             )
         }
     }
@@ -51,7 +64,7 @@ fun CommunityList(
 
 
 @Composable
-fun SearchScreen(viewModel: SearchViewModel) {
+fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
 
     val users by viewModel.users.collectAsState()
     val communities by viewModel.communities.collectAsState()
@@ -121,7 +134,18 @@ fun SearchScreen(viewModel: SearchViewModel) {
                                         viewModel.sendFriendRequest(user.id)
                                     }
                                 },
-                                requestSent = alreadySent
+                                requestSent = alreadySent,
+                                onProfileClick = { userId ->
+                                    println("Navigating to profile from SearchScreen: $userId")
+                                    try {
+                                        navController.navigate("profile/$userId") {
+                                            launchSingleTop = true
+                                        }
+                                    } catch (e: Exception) {
+                                        println("Navigation error: ${e.message}")
+                                        e.printStackTrace()
+                                    }
+                                }
                             )
                             Spacer(Modifier.height(12.dp))
                         }
