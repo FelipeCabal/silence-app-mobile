@@ -395,6 +395,27 @@ class ChatRepository(
             false
         }
     }
+    
+    /**
+     * Elimina un chat privado del servidor y localmente
+     */
+    suspend fun deletePrivateChat(token: String, chatId: String): Result<Unit> {
+        return try {
+            val response = chatService.deletePrivateChat("Bearer $token", chatId)
+            
+            if (response.isSuccessful) {
+                // Eliminar localmente también
+                chatDao.getChatById(chatId)?.let { chat ->
+                    chatDao.deleteChat(chat)
+                }
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error al eliminar chat privado: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     suspend fun deleteAllChats(): Boolean {
         return try {
@@ -407,9 +428,6 @@ class ChatRepository(
 
     // ============ SYNC OPERATIONS FROM REMOTE ==========
 
-    // PENDIENTE - API no disponible aún
-    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
-    /*
     /**
      * Sincroniza chats privados desde el servidor
      */
@@ -432,7 +450,6 @@ class ChatRepository(
             Result.failure(e)
         }
     }
-    */
 
     /**
      * Sincroniza comunidades desde el servidor
@@ -481,20 +498,17 @@ class ChatRepository(
     }
 
     /**
-     * Sincroniza todos los chats disponibles (grupos y comunidades)
-     * NOTA: Chats privados omitidos - API no disponible aún
+     * Sincroniza todos los chats disponibles (chats privados, grupos y comunidades)
      */
-    suspend fun syncAllChats(token: String): Result<Unit> {
+    suspend fun syncAllChats(token: String, currentUserId: String): Result<Unit> {
         return try {
-            // TODO: Descomentar cuando /chat-privado esté disponible
-            // val privateResult = syncPrivateChats(token, currentUserId)
-            
+            val privateResult = syncPrivateChats(token, currentUserId)
             val communitiesResult = syncCommunities(token)
             val groupsResult = syncGroups(token)
 
             // Si alguna falla, devolver el error
             when {
-                // privateResult.isFailure -> Result.failure(privateResult.exceptionOrNull()!!)
+                privateResult.isFailure -> Result.failure(privateResult.exceptionOrNull()!!)
                 communitiesResult.isFailure -> Result.failure(communitiesResult.exceptionOrNull()!!)
                 groupsResult.isFailure -> Result.failure(groupsResult.exceptionOrNull()!!)
                 else -> Result.success(Unit)
@@ -505,6 +519,33 @@ class ChatRepository(
     }
 
     // ============ CREATE CHAT OPERATIONS ==========
+    
+    /**
+     * Crea un nuevo chat privado
+     */
+    suspend fun createPrivateChat(token: String, userRecibeId: String, currentUserId: String): Result<Chat> {
+        return try {
+            val chatData = com.example.silenceapp.data.remote.dto.CreatePrivateChatDto(userRecibeId)
+            val response = chatService.createPrivateChat("Bearer $token", chatData)
+            
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.error == false && apiResponse.data != null) {
+                    // Convertir el DTO a Chat entity
+                    val chat = ChatMapper.fromPrivateChatDto(apiResponse.data, currentUserId)
+                    // Insertar el chat localmente
+                    chatDao.insertChat(chat)
+                    Result.success(chat)
+                } else {
+                    Result.failure(Exception(apiResponse?.message ?: "Error al crear chat privado"))
+                }
+            } else {
+                Result.failure(Exception("Error al crear chat privado: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     /**
      * Crea un nuevo grupo

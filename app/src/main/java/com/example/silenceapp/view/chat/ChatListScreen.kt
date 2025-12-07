@@ -66,8 +66,10 @@ fun ChatListScreen(
         if (!hasSynced) {
             hasSynced = true
             authViewModel.loadToken { token ->
-                if (token.isNotBlank()) {
-                    chatViewModel.syncAllChats(token) { success ->
+                authViewModel.loadUserId { userId ->
+                    if (token.isNotBlank() && userId.isNotBlank()) {
+                        chatViewModel.syncAllChats(token, userId) { success ->
+                        }
                     }
                 }
             }
