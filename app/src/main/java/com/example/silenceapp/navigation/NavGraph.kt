@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import com.example.silenceapp.view.posts.PostDetailScreen
 import com.example.silenceapp.view.posts.PostScreenSimple
+import com.example.silenceapp.view.search.SearchScreen
+import com.example.silenceapp.viewmodel.SearchViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -46,6 +48,8 @@ fun NavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
+    val searchViewModel: SearchViewModel = viewModel()
+
     val ROUTE_ADD_POST = "add-post"
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
 
@@ -120,6 +124,12 @@ fun NavGraph(navController: NavHostController) {
                     onCreatePostClick = {}
                 )
             }*/
+
+            composable("search") {
+                SearchScreen(
+                    viewModel = searchViewModel
+                )
+            }
 
             composable("edit-profile") {
                 if (isAuthenticated != true) {
