@@ -19,20 +19,49 @@ data class ProfileResponse(
     val amigos: Int = 0,
     val publicacionesCount: Int = 0,
     val relationshipStatus: RelationshipStatusResponse? = null,
-    @SerializedName("ShowLikes") val showLikes: Boolean,
-    val publicaciones: List<PostResponse> = emptyList(),
-    val comunidades: List<JsonElement> = emptyList(),
-    val grupos: List<JsonElement> = emptyList(),
+    @SerializedName("ShowLikes") val showLikes: Boolean = false,
+    val publicaciones: List<PublicacionSummary> = emptyList(),
+    val comunidades: List<ComunidadInfo> = emptyList(),
+    val grupos: List<GrupoInfo> = emptyList(),
     val solicitudesAmistad: List<FriendRequests> = emptyList(),
     val likes: List<LikeResponse> = emptyList(),
+    val pubAnonimas: List<JsonElement> = emptyList(),
     val createdAt: String,
     val updatedAt: String,
     @SerializedName("__v") val v: Int
 )
 
+data class PublicacionSummary(
+    val id: String,
+    val summary: PostSummary
+)
+
+data class PostSummary(
+    val esAnonimo: Boolean,
+    val description: String,
+    @JsonAdapter(ImagenDeserializer::class)
+    val imagen: List<String?>?
+)
+
 data class FriendRequests(
-    val enviadas: List<JsonElement> = emptyList(),
-    val recibidas: List<JsonElement> = emptyList()
+    val enviadas: List<FriendRequestItem> = emptyList(),
+    val recibidas: List<FriendRequestItem> = emptyList()
+)
+
+data class FriendRequestItem(
+    @SerializedName("_id") val id: String,
+    val from: String,
+    val estado: String, // "P" = Pending, "A" = Accepted, "R" = Rejected
+    val fecha: String
+)
+
+data class ComunidadInfo(
+    @SerializedName("_id") val id: String,
+    val nombre: String
+)
+
+data class GrupoInfo(
+    @SerializedName("_id") val id: String
 )
 
 data class LikeResponse(
@@ -43,5 +72,14 @@ data class LikeResponse(
     val cantLikes: Int,
     val cantComentarios: Int,
     val esAnonimo: Boolean,
-    val createdAt: String
+    val createdAt: String,
+    val owner: LikeOwner? = null
+)
+
+data class LikeOwner(
+    @SerializedName("_id") val id: String,
+    val nombre: String,
+    @JsonAdapter(ImagenDeserializer::class)
+    val imagen: List<String?>?,
+    val userId: String
 )

@@ -217,16 +217,48 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun mapLikesToPosts(likes: List<LikeResponse>): List<PostResponse> {
-        return likes.map { like ->
+        return likes.reversed().map { like ->
             PostResponse(
                 id = like.id,
-                owner = null,
+                owner = like.owner?.let { owner ->
+                    ProfileResponse(
+                        id = owner.id,
+                        nombre = owner.nombre,
+                        email = "", // No disponible en LikeOwner
+                        fechaNto = "",
+                        sexo = "",
+                        pais = "",
+                        imagen = owner.imagen,
+                        showLikes = false,
+                        createdAt = "",
+                        updatedAt = "",
+                        v = 0
+                    )
+                },
                 description = like.description,
                 imagen = like.imagen,
                 cantLikes = like.cantLikes,
                 cantComentarios = like.cantComentarios,
                 esAnonimo = like.esAnonimo,
                 createdAt = like.createdAt,
+            )
+        }
+    }
+    
+    private fun mapPublicacionSummaryToPosts(
+        publicaciones: List<com.example.silenceapp.data.remote.response.PublicacionSummary>,
+        owner: ProfileResponse
+    ): List<PostResponse> {
+        return publicaciones.map { pub ->
+            PostResponse(
+                id = pub.id,
+                owner = owner,
+                description = pub.summary.description,
+                imagen = pub.summary.imagen,
+                cantLikes = 0, // No viene en el summary
+                cantComentarios = 0, // No viene en el summary
+                esAnonimo = pub.summary.esAnonimo,
+                createdAt = "", // No viene en el summary
             )
         }
     }
@@ -237,7 +269,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     ): List<PostResponse> {
         val postsFromProfile = profileResponse.publicaciones
         return if (postsFromProfile.isNotEmpty()) {
-            attachOwnerToPosts(postsFromProfile, profileResponse)
+            mapPublicacionSummaryToPosts(postsFromProfile, profileResponse)
         } else {
             val remotePosts = repository.getUserPosts(targetUserId)
             attachOwnerToPosts(remotePosts, profileResponse)

@@ -34,12 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.silenceapp.R
+import com.example.silenceapp.data.local.entity.Post
+import com.example.silenceapp.ui.components.PostCard
 import com.example.silenceapp.ui.components.ProfileActionsBar
 import com.example.silenceapp.ui.components.ProfileHeader
-import com.example.silenceapp.ui.components.ProfilePostCard
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.viewmodel.ProfileViewModel
 import com.example.silenceapp.viewmodel.RelationshipStatus
+import com.google.gson.Gson
 
 private enum class PostFilter {
     POSTS,
@@ -158,6 +160,25 @@ fun ProfileScreen(
                     PostFilter.POSTS -> state.isLoadingPosts
                     PostFilter.LIKES -> state.isLoadingLikedPosts
                 }
+                
+                // Convertir PostResponse a Post entity para usar PostCard
+                val gson = Gson()
+                val displayedPostsAsEntity = displayedPosts.map { postResponse ->
+                    Post(
+                        id = 0, // No importa para visualización
+                        remoteId = postResponse.id,
+                        userId = postResponse.owner?.id ?: "",
+                        userName = if (postResponse.esAnonimo) "Anónimo" else (postResponse.owner?.nombre ?: "Usuario desconocido"),
+                        userImageProfile = postResponse.owner?.imagen?.firstOrNull(),
+                        description = postResponse.description,
+                        images = postResponse.imagen?.let { gson.toJson(it) },
+                        cantLikes = postResponse.cantLikes,
+                        cantComentarios = postResponse.cantComentarios,
+                        esAnonimo = postResponse.esAnonimo,
+                        hasLiked = false, // TODO: verificar si el usuario le dio like
+                        createdAt = postResponse.createdAt.toLongOrNull() ?: System.currentTimeMillis()
+                    )
+                }
 
                 when {
                     isLoading -> {
@@ -194,8 +215,17 @@ fun ProfileScreen(
                     }
 
                     else -> {
-                        items(displayedPosts) { post ->
-                            ProfilePostCard(post = post)
+                        items(displayedPostsAsEntity) { post ->
+                            PostCard(
+                                post = post,
+                                onClick = { postId ->
+                                    // Navegar al detalle del post
+                                    navController.navigate("post/$postId")
+                                },
+                                onLikeClick = { postId ->
+                                    // TODO: Implementar toggle like en ProfileViewModel
+                                }
+                            )
                             Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
