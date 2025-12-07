@@ -46,7 +46,8 @@ import java.util.*
 fun PostCard(
     post: Post, 
     onClick: (String) -> Unit,
-    onLikeClick: ((String) -> Unit)? = null
+    onLikeClick: ((String) -> Unit)? = null,
+    onProfileClick: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     
@@ -82,13 +83,18 @@ fun PostCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Avatar circular
+                // Avatar circular - clickeable para ir al perfil
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(PaleMint)
-                        .border(2.dp, Color.White, CircleShape),
+                        .border(2.dp, Color.White, CircleShape)
+                        .clickable {
+                            if (!post.esAnonimo && onProfileClick != null) {
+                                onProfileClick(post.userId)
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     if (post.userImageProfile.isNullOrEmpty()) {
@@ -102,9 +108,9 @@ fun PostCard(
                             painter = rememberAsyncImagePainter(post.userImageProfile),
                             contentDescription = "Foto de perfil de ${post.userName}",
                             modifier = Modifier
-                                .height(50.dp)
+                                .fillMaxSize()
                                 .clip(CircleShape),
-                            contentScale = ContentScale.Fit
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }

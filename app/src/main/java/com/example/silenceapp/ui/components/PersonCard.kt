@@ -1,6 +1,7 @@
 package com.example.silenceapp.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -9,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.remember
@@ -25,7 +27,8 @@ import com.example.silenceapp.R
 fun PersonCard(
     user: User,
     onFollow: (User) -> Unit,
-    requestSent: Boolean = false
+    requestSent: Boolean = false,
+    onProfileClick: ((String) -> Unit)? = null
 ) {
     var localRequestSent by remember { mutableStateOf(requestSent) }
 
@@ -49,10 +52,16 @@ fun PersonCard(
                 placeholder = painterResource(R.drawable.avatar_placeholder)
             ),
             contentDescription = null,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .padding(vertical = 6.dp)
                 .size(100.dp)
                 .clip(CircleShape)
+                .clickable {
+                    if (user.id.isNotBlank()) {
+                        onProfileClick?.invoke(user.id)
+                    }
+                }
         )
 
         Spacer(modifier = Modifier.width(40.dp))

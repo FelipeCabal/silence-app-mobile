@@ -38,7 +38,7 @@ class ProfileRepository(
     }
 
     suspend fun sendFriendRequest(id: String): RelationshipStatusResponse {
-        return profileService.sendFriendRequest(getAuthHeader(), FriendRequestDto(id))
+        return profileService.sendFriendRequest(getAuthHeader(), id)
     }
 
     suspend fun cancelFriendRequest(id: String): RelationshipStatusResponse {

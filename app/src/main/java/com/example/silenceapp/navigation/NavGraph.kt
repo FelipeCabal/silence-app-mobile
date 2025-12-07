@@ -50,7 +50,6 @@ fun NavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
-    val profileViewModel: ProfileViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
 
     val ROUTE_ADD_POST = "add-post"
@@ -86,7 +85,7 @@ fun NavGraph(navController: NavHostController) {
             if (showBarTop) TopBar(navController)
         },
         bottomBar = {
-            if (showBar) BottomNavigationBar(navController)
+            if (showBar) BottomNavigationBar(navController, postViewModel)
 
         }
     )
@@ -133,13 +132,17 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
+                    val profileViewModel: ProfileViewModel = viewModel(
+                        key = "profile_$userIdArg"
+                    )
                     ProfileScreen(navController, userIdArg, profileViewModel)
                 }
             }
 
             composable("search") {
                 SearchScreen(
-                    viewModel = searchViewModel
+                    viewModel = searchViewModel,
+                    navController = navController
                 )
             }
 
@@ -230,6 +233,7 @@ fun NavGraph(navController: NavHostController) {
                 } else {
                     PostScreenSimple(
                         viewModel = postViewModel, // Pasar el ViewModel
+                        navController = navController,
                         onPostClick = { postId ->
                             navController.navigate("post/$postId")
                         },
