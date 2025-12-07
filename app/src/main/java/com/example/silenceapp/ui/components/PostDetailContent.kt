@@ -48,14 +48,8 @@ fun PostDetailContent(
 ) {
     val gson = Gson()
 
-    // Parseo imágenes (post.images es JSON string o null)
-    val images: List<String> = try {
-        if (!post.images.isNullOrEmpty()) {
-            gson.fromJson(post.images, Array<String>::class.java).toList()
-        } else emptyList()
-    } catch (e: Exception) {
-        emptyList()
-    }
+    // images ahora es List<String> directamente
+    val images: List<String> = post.images
 
     // Parseo comentarios (post.comentarios es JSON string o null)
     val comentarios: List<Comment> = try {

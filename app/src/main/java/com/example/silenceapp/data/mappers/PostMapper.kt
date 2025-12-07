@@ -12,15 +12,10 @@ private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale
     timeZone = TimeZone.getTimeZone("UTC")
 }
 fun PostResponse.toLocalPost(currentUserId: String? = null): Post {
-    val gson = Gson()
-
-    // Convertir la lista de imágenes a JSON, filtrando nulls
-    val imagesJson = when {
-        imagen.isNullOrEmpty() -> null
-        else -> {
-            val cleanImages = imagen.filterNotNull().filter { it.isNotBlank() }
-            if (cleanImages.isEmpty()) null else gson.toJson(cleanImages)
-        }
+    // Limpiar la lista de imágenes, filtrando nulls y vacíos
+    val cleanImages = when {
+        imagen.isNullOrEmpty() -> emptyList()
+        else -> imagen.filterNotNull().filter { it.isNotBlank() }
     }
 
     // PostResponse no tiene campo likes, así que hasLiked será false por defecto
@@ -31,7 +26,7 @@ fun PostResponse.toLocalPost(currentUserId: String? = null): Post {
         userName = this.owner?.nombre ?: "Usuario",
         userImageProfile = this.owner?.imagen?.firstOrNull(),
         description = this.description,
-        images = imagesJson,
+        images = cleanImages,
         cantLikes = this.cantLikes,
         cantComentarios = this.cantComentarios,
         esAnonimo = this.esAnonimo,
@@ -41,15 +36,10 @@ fun PostResponse.toLocalPost(currentUserId: String? = null): Post {
 }
 
 fun PostDetailResponse.toLocalPostDetail(currentUserId: String? = null): Post {
-    val gson = Gson()
-
-    // Convertir la lista de imágenes a JSON, filtrando nulls
-    val imagesJson = when {
-        imagen.isNullOrEmpty() -> null
-        else -> {
-            val cleanImages = imagen.filterNotNull().filter { it.isNotBlank() }
-            if (cleanImages.isEmpty()) null else gson.toJson(cleanImages)
-        }
+    // Limpiar la lista de imágenes, filtrando nulls y vacíos
+    val cleanImages = when {
+        imagen.isNullOrEmpty() -> emptyList()
+        else -> imagen.filterNotNull().filter { it.isNotBlank() }
     }
 
     // Verificar si el usuario actual dio like
@@ -61,7 +51,7 @@ fun PostDetailResponse.toLocalPostDetail(currentUserId: String? = null): Post {
         userName = owner?.nombre ?: "Usuario",
         userImageProfile = owner?.imagen?.firstOrNull(),
         description = description,
-        images = imagesJson,
+        images = cleanImages,
         cantLikes = cantLikes,
         cantComentarios = cantComentarios,
         //comentarios = comentarios,

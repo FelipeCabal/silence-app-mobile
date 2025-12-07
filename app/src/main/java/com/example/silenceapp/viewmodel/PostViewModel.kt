@@ -39,10 +39,13 @@ data class PostDetailUiState(
 )
 class PostViewModel(application: Application): AndroidViewModel(application){
     private val postDao = DatabaseProvider.getDatabase(application).postDao()
-    private val apiRepository = ApiPostRepository()
+    private val authDataStore = AuthDataStore(application)
+
+    private val api = ApiClient.postService
+    private val apiRepository = ApiPostRepository(api,authDataStore)
     private val repository = PostRepository(postDao)
     private val likeService = ApiClient.likeService
-    private val authDataStore = AuthDataStore(application)
+
     private val authRepository = AuthRepository(ApiClient.authService, authDataStore)
     private val gson = Gson()
 
@@ -156,31 +159,33 @@ class PostViewModel(application: Application): AndroidViewModel(application){
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
-            // Copiar imágenes a almacenamiento permanente
-            val permanentUris = withContext(Dispatchers.IO) {
-                imageUris.mapNotNull { uriString ->
-                    try {
-                        copyImageToPermanentStorage(uriString.toUri())
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
+            try {
+                // Crear el post local temporal
+                val post = Post(
+                    userId = userId,
+                    userName = userName,
+                    description = description,
+                    images = imageUris,
+                    esAnonimo = esAnonimo,
+                    createdAt = System.currentTimeMillis()
+                )
+
+                val createdPost = withContext(Dispatchers.IO) {
+                    apiRepository.createPost(post, userId)
                 }
+
+                withContext(Dispatchers.IO) {
+                    repository.createPost(createdPost)
+                }
+
+                loadPosts()
+                
+                onResult(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                android.util.Log.e("PostViewModel", "Error creating post: ${e.message}")
+                onResult(false)
             }
-            
-            val imagesJson = if (permanentUris.isNotEmpty()) gson.toJson(permanentUris) else null
-            val post = Post(
-                userId = userId,
-                userName = userName,
-                description = description,
-                images = imagesJson,
-                esAnonimo = esAnonimo,
-                createdAt = System.currentTimeMillis()
-            )
-            val success = withContext(Dispatchers.IO) {
-                repository.createPost(post)
-            }
-            onResult(success)
         }
     }
 
