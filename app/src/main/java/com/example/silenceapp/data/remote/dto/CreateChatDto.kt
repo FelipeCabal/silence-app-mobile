@@ -17,6 +17,14 @@ data class CreateChatDto(
 )
 
 /**
+ * DTO para crear un chat privado
+ */
+data class CreatePrivateChatDto(
+    @SerializedName("userRecibeId")
+    val userRecibeId: String
+)
+
+/**
  * Respuesta al crear un chat
  */
 data class CreateChatResponse(

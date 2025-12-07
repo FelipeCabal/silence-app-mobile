@@ -473,22 +473,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // ============ SYNC OPERATIONS ============
 
     /**
-     * Sincroniza todos los chats disponibles desde el servidor
-     * NOTA: Chats privados omitidos - API no disponible aún
+     * Sincroniza todos los chats disponibles desde el servidor (chats privados, grupos y comunidades)
      */
-    fun syncAllChats(token: String, onResult: (Boolean) -> Unit) {
+    fun syncAllChats(token: String, currentUserId: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             
             val result = withContext(Dispatchers.IO) {
-                repository.syncAllChats(token)
+                repository.syncAllChats(token, currentUserId)
             }
             
             _isLoading.value = false
             result.fold(
                 onSuccess = {
-                    Log.d(TAG, "Grupos y comunidades sincronizados exitosamente")
+                    Log.d(TAG, "Todos los chats sincronizados exitosamente")
                     onResult(true)
                 },
                 onFailure = { exception ->
@@ -500,9 +499,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // PENDIENTE - API no disponible aún
-    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
-    /*
     /**
      * Sincroniza solo chats privados
      */
@@ -529,7 +525,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
     }
-    */
 
     /**
      * Sincroniza solo comunidades
@@ -587,6 +582,35 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // ============ CHAT OPERATIONS ============
 
+    // ============ CREATE CHAT OPERATIONS ============
+    
+    /**
+     * Crea un nuevo chat privado
+     */
+    fun createPrivateChat(token: String, userRecibeId: String, currentUserId: String, onResult: (Result<Chat>) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            val result = withContext(Dispatchers.IO) {
+                repository.createPrivateChat(token, userRecibeId, currentUserId)
+            }
+            
+            _isLoading.value = false
+            result.fold(
+                onSuccess = { chat ->
+                    Log.d(TAG, "Chat privado creado exitosamente: ${chat.id}")
+                    onResult(Result.success(chat))
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Error al crear chat privado", exception)
+                    _error.value = exception.message
+                    onResult(Result.failure(exception))
+                }
+            )
+        }
+    }
+    
     /**
      * Crea un nuevo grupo
      */

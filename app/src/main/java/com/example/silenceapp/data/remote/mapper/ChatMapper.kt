@@ -3,31 +3,24 @@ package com.example.silenceapp.data.remote.mapper
 import com.example.silenceapp.data.local.entity.Chat
 import com.example.silenceapp.data.remote.dto.CommunityDto
 import com.example.silenceapp.data.remote.dto.GroupDto
-// import com.example.silenceapp.data.remote.dto.PrivateChatDto // PENDIENTE - API no disponible
+import com.example.silenceapp.data.remote.dto.PrivateChatDto
 import java.text.SimpleDateFormat
 import java.util.*
 
 object ChatMapper {
 
-    // PENDIENTE - API no disponible aún
-    // TODO: Descomentar cuando el endpoint /chat-privado esté disponible
-    /*
     /**
      * Convierte un PrivateChatDto a Chat entity
-     * Selecciona el nombre e imagen del otro participante (no el usuario actual)
+     * Usa nombre e imagen del otro participante que vienen directamente del backend
      */
     fun fromPrivateChatDto(dto: PrivateChatDto, currentUserId: String): Chat {
-        // Encontrar el otro participante (no el usuario actual)
-        val otherParticipant = dto.participants.find { it.id != currentUserId }
-            ?: dto.participants.firstOrNull()
-        
         return Chat(
             id = dto.id,
-            name = otherParticipant?.username ?: "Usuario desconocido",
+            name = dto.nombre ?: "Chat Privado",
             type = "private",
-            image = otherParticipant?.profileImage ?: "",
+            image = dto.imagen ?: "",
             description = "Chat privado",
-            lastMessageDate = parseDate(dto.lastMessageDate),
+            lastMessageDate = parseDate(dto.updatedAt),
             lastMessage = dto.lastMessage ?: ""
         )
     }
@@ -38,7 +31,6 @@ object ChatMapper {
     fun fromPrivateChatDtoList(dtos: List<PrivateChatDto>, currentUserId: String): List<Chat> {
         return dtos.map { fromPrivateChatDto(it, currentUserId) }
     }
-    */
 
     /**
      * Convierte un CommunityDto a Chat entity

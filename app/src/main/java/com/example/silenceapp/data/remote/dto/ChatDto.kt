@@ -14,34 +14,48 @@ data class ApiResponse<T>(
     val data: T?
 )
 
-// DTO para chats privados (PENDIENTE - API no disponible aún)
-// TODO: Descomentar cuando el endpoint /chat-privado esté disponible
-/*
+// DTO para chats privados
 data class PrivateChatDto(
-    @SerializedName("id")
+    @SerializedName(value = "_id", alternate = ["id"])
     val id: String,
     
+    @SerializedName("nombre")
+    val nombre: String? = null,
+    
+    @SerializedName("imagen")
+    val imagen: String? = null,
+    
     @SerializedName("participants")
-    val participants: List<ParticipantDto>,
+    val participants: List<ParticipantDto>? = null,
     
     @SerializedName("lastMessage")
-    val lastMessage: String?,
+    val lastMessage: String? = null,
     
-    @SerializedName("lastMessageDate")
-    val lastMessageDate: String
+    @SerializedName("updatedAt")
+    val updatedAt: String,
+    
+    @SerializedName("createdAt")
+    val createdAt: String
 )
 
 data class ParticipantDto(
-    @SerializedName("id")
+    @SerializedName("_id")
     val id: String,
     
-    @SerializedName("username")
-    val username: String,
+    @SerializedName("nombre")
+    val nombre: String,
     
-    @SerializedName("profileImage")
-    val profileImage: String?
+    @SerializedName("imagen")
+    val imagen: List<String>?
 )
-*/
+
+data class LastMessageDto(
+    @SerializedName("content")
+    val content: String,
+    
+    @SerializedName("timestamp")
+    val timestamp: String
+)
 
 // DTO para comunidades
 data class CommunityDto(
