@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
@@ -22,6 +23,7 @@ import com.example.silenceapp.data.local.entity.Message
 import com.example.silenceapp.data.remote.socket.ConnectionState
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.view.chat.components.ConnectionIndicator
+import com.example.silenceapp.view.chat.components.InviteFriendsDialog
 import com.example.silenceapp.view.chat.components.MessageBubble
 import com.example.silenceapp.view.chat.components.MessageInput
 import com.example.silenceapp.view.chat.components.TypingIndicator
@@ -74,10 +76,15 @@ fun ChatScreen(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     
-    // Obtener userId del DataStore
+    // Estado del modal de invitar amigos
+    var showInviteDialog by remember { mutableStateOf(false) }
+    var authToken by remember { mutableStateOf("") }
+    
+    // Obtener userId y token del DataStore
     var currentUserId by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         currentUserId = authDataStore.getUserId().first()
+        authToken = authDataStore.getToken().first()
         android.util.Log.d("ChatScreen", "👤 userId del usuario actual: $currentUserId")
     }
     
@@ -175,6 +182,17 @@ fun ChatScreen(
                     }
                 },
                 actions = {
+                    // Botón de invitar amigos solo para grupos
+                    if (chatType == "group") {
+                        IconButton(onClick = { showInviteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = "Invitar amigos",
+                                tint = onBackgroundColor
+                            )
+                        }
+                    }
+                    
                     ConnectionIndicator(
                         state = connectionState,
                         modifier = Modifier.padding(end = 8.dp)
@@ -248,5 +266,14 @@ fun ChatScreen(
                 enabled = connectionState is ConnectionState.Connected
             )
         }
+    }
+    
+    // Modal para invitar amigos (solo grupos)
+    if (showInviteDialog && chatType == "group") {
+        InviteFriendsDialog(
+            groupId = chatId,
+            token = authToken,
+            onDismiss = { showInviteDialog = false }
+        )
     }
 }
