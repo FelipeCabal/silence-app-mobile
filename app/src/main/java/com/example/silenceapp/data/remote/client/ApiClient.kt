@@ -6,6 +6,7 @@ import android.util.Log
 import com.example.silenceapp.data.remote.service.ChatService
 import com.example.silenceapp.data.remote.response.ImagenDeserializer
 import com.example.silenceapp.data.remote.service.FirebaseService
+import com.example.silenceapp.data.remote.service.ProfileService
 import com.example.silenceapp.data.remote.service.FriendRequestService
 import com.example.silenceapp.data.remote.service.GroupInvitationService
 import com.example.silenceapp.data.remote.service.LikeService
@@ -60,6 +61,7 @@ object ApiClient {
     val authService: AuthService = retrofit.create(AuthService::class.java)
     val userService: UserService = retrofit.create(UserService::class.java)
     val firebaseService: FirebaseService = retrofit.create(FirebaseService::class.java)
+    val profileService: ProfileService = retrofit.create(ProfileService::class.java)
     val chatService: ChatService = retrofit.create(ChatService::class.java)
 
     val postService: PostService = retrofit.create(PostService::class.java)

@@ -19,6 +19,7 @@ import com.example.silenceapp.view.chat.ChatScreen
 import com.example.silenceapp.view.chat.CreateChatScreen
 import com.example.silenceapp.view.posts.CreatePostScreen
 import com.example.silenceapp.view.profile.EditProfileScreen
+import com.example.silenceapp.view.profile.ProfileScreen
 import com.example.silenceapp.viewmodel.AuthViewModel
 import com.example.silenceapp.view.notifications.NotificationsScreen
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,7 @@ import com.example.silenceapp.ui.components.TopBar
 import com.example.silenceapp.ui.components.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
+import com.example.silenceapp.viewmodel.ProfileViewModel
 import com.example.silenceapp.view.posts.PostDetailScreen
 import com.example.silenceapp.view.posts.PostScreenSimple
 import com.example.silenceapp.view.search.SearchScreen
@@ -48,6 +50,7 @@ fun NavGraph(navController: NavHostController) {
     val authViewModel: AuthViewModel = viewModel()
     val userViewModel: UserViewModel = viewModel()
     val postViewModel: PostViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
 
     val ROUTE_ADD_POST = "add-post"
@@ -55,15 +58,18 @@ fun NavGraph(navController: NavHostController) {
 
 
     if (isAuthenticated == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
 
         return
     }
 
-    //Debe cambiar esto cuando se implemente la homepage
-    val homescreen = "home"
+
+    val homescreen = "profile/self"
     val start = if (isAuthenticated == true) homescreen else "login"
 
     // Obtener la ruta actual correctamente
@@ -72,9 +78,8 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "chats", "create-chat") &&
-                     !(currentRoute?.startsWith("add-post") ?: false) &&
-                     !(currentRoute?.startsWith("chat/") ?: false)
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") &&
+            !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
         topBar = {
@@ -115,15 +120,22 @@ fun NavGraph(navController: NavHostController) {
                     RegisterScreen(navController, authViewModel)
                 }
             }
-           /** composable("home") {
-                //TestingViews(navController)
-                PostScreenSimple(
-                    onPostClick = { postId ->
-                        navController.navigate("post/$postId")
-                    },
-                    onCreatePostClick = {}
-                )
-            }*/
+            composable(
+                route = "profile/{userId}",
+                arguments = listOf(navArgument("userId") { defaultValue = "self" })
+            ) { backStackEntry ->
+                val userIdArg = backStackEntry.arguments?.getString("userId") ?: "self"
+                if (isAuthenticated != true) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate("login") {
+                            popUpTo("profile/{userId}") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    ProfileScreen(navController, userIdArg, profileViewModel)
+                }
+            }
 
             composable("search") {
                 SearchScreen(

@@ -159,7 +159,7 @@ fun BottomNavigationBar(navController: NavController)
                             modifier = Modifier.size(32.dp)
                         )}
 
-                    if (currentRoute == "edit-profile") {
+                    if (currentRoute?.startsWith("profile/") == true || currentRoute == "edit-profile") {
                         Box(
                             modifier = Modifier
                                 .height(3.dp)
@@ -168,8 +168,12 @@ fun BottomNavigationBar(navController: NavController)
                         )
                     }
                 }},
-            selected =  currentRoute == "edit-profile",
-            onClick = { navController.navigate("edit-profile") }
+            selected =  currentRoute?.startsWith("profile/") == true || currentRoute == "edit-profile",
+            onClick = {
+                navController.navigate("profile/self") {
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }

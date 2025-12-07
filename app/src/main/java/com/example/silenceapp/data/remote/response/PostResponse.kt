@@ -4,6 +4,7 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.annotations.JsonAdapter
+import com.google.gson.annotations.SerializedName
 import java.lang.reflect.Type
 
 // Deserializador que maneja tanto String como Array
@@ -42,7 +43,7 @@ class ImagenDeserializer : JsonDeserializer<List<String?>?> {
 }
 
 data class PostResponse(
-    val id: String,
+    @SerializedName("_id") val id: String,
     val owner: ProfileResponse?,
     val description: String,
     @JsonAdapter(ImagenDeserializer::class)
