@@ -14,24 +14,19 @@ class SearchRepository (
     private val api: SearchService,
 ){
 
-    // Cached data
-    private var cachedUsers: List<User>? = null
-    private var cachedCommunities: List<Community>? = null
-    // Obtener todos los usuarios desde la API o cache
+    // Obtener todos los usuarios desde la API (sin cache)
     suspend fun getUsers(): List<User> {
-        if (cachedUsers != null) return cachedUsers!!
         val token = store.getToken().first()
         val response = api.getAllUsers("Bearer $token")
-        cachedUsers = response
         return response
     }
-    // Obtener todas las comunidades desde la API o cache
+    
+    // Obtener todas las comunidades desde la API (sin cache)
     suspend fun getCommunities(): List<Community> {
-        if (cachedCommunities != null) return cachedCommunities!!
         val response = api.getAllCommunities()
-        cachedCommunities = response.results
         return response.results
     }
+    
     // Buscar usuarios usando los datos cargados
     suspend fun searchUsers(query: String): List<User> {
         val users = getUsers()

@@ -34,6 +34,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val _sentRequestsCommunityIds = MutableStateFlow<List<String>>(emptyList())
     val sentRequestsCommunityIds: StateFlow<List<String>> = _sentRequestsCommunityIds
 
+    // Método para limpiar datos cuando se hace logout
+    fun clearData() {
+        _users.value = emptyList()
+        _communities.value = emptyList()
+        _sentRequestsIds.value = emptyList()
+        _sentRequestsCommunityIds.value = emptyList()
+        _error.value = null
+    }
 
     init {
         loadInitialData()

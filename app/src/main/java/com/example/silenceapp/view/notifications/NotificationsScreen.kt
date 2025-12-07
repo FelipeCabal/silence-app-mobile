@@ -260,9 +260,6 @@ fun FriendRequestItem(
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
-    // Como solo tenemos IDs, mostramos información básica
-    // TODO: Hacer populate en el backend para obtener datos completos del usuario
-    
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -278,7 +275,7 @@ fun FriendRequestItem(
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(
-                        model = R.mipmap.ic_launcher
+                        model = request.sender.imagen ?: R.mipmap.ic_launcher
                     ),
                     contentDescription = "Avatar",
                     modifier = Modifier
@@ -289,7 +286,7 @@ fun FriendRequestItem(
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Solicitud de amistad",
+                        text = request.sender.nombre,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )

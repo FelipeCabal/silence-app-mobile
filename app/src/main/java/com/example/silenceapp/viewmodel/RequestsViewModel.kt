@@ -28,6 +28,9 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
     
+    // Track which requests are being processed to prevent duplicate calls
+    private val processingRequests = mutableSetOf<String>()
+    
     companion object {
         private const val TAG = "RequestsViewModel"
     }
@@ -57,7 +60,7 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
                     val requests = response.body() ?: emptyList()
                     Log.d(TAG, "📦 Total solicitudes recibidas: ${requests.size}")
                     requests.forEach { request ->
-                        Log.d(TAG, "   - ID: ${request.id}, Status: ${request.status}, SenderId: ${request.senderId}, ReceiverId: ${request.receiverId}")
+                        Log.d(TAG, "   - ID: ${request.id}, Status: ${request.status}, SenderId: ${request.sender.id}")
                     }
                     // Filtrar solo las pendientes (status = "P")
                     _friendRequests.value = requests.filter { it.status == "P" }
@@ -122,20 +125,38 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
      */
     fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
+            // Prevent duplicate calls
+            if (processingRequests.contains(requestId)) {
+                Log.w(TAG, "⚠️ Ya se está procesando la solicitud $requestId, ignorando...")
+                return@launch
+            }
+            
             try {
+                processingRequests.add(requestId)
                 val token = authDataStore.getToken().first()
                 Log.d(TAG, "✅ Aceptando solicitud: $requestId")
+                Log.d(TAG, "   Token length: ${token.length}")
+                Log.d(TAG, "   Token preview: ${token.take(20)}...")
                 
                 val response = friendRequestService.acceptFriendRequest(requestId, "Bearer $token")
                 
+                Log.d(TAG, "📥 Response code: ${response.code()}")
+                Log.d(TAG, "📥 Response message: ${response.message()}")
+                
                 if (response.isSuccessful) {
-                    Log.d(TAG, "✅ Solicitud aceptada")
-                    loadFriendRequests() // Recargar lista
+                    Log.d(TAG, "✅ Solicitud aceptada exitosamente")
+                    // Eliminar de la lista local inmediatamente
+                    _friendRequests.value = _friendRequests.value.filter { it.id != requestId }
+                    Log.d(TAG, "✅ Solicitud removida de la lista. Restantes: ${_friendRequests.value.size}")
                 } else {
-                    Log.e(TAG, "❌ Error al aceptar: ${response.code()}")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "❌ Error al aceptar: ${response.code()} - ${response.message()}")
+                    Log.e(TAG, "❌ Error body: $errorBody")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Excepción al aceptar solicitud", e)
+            } finally {
+                processingRequests.remove(requestId)
             }
         }
     }
@@ -145,20 +166,37 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
      */
     fun rejectFriendRequest(requestId: String) {
         viewModelScope.launch {
+            // Prevent duplicate calls
+            if (processingRequests.contains(requestId)) {
+                Log.w(TAG, "⚠️ Ya se está procesando la solicitud $requestId, ignorando...")
+                return@launch
+            }
+            
             try {
+                processingRequests.add(requestId)
                 val token = authDataStore.getToken().first()
                 Log.d(TAG, "❌ Rechazando solicitud: $requestId")
+                Log.d(TAG, "   Token length: ${token.length}")
                 
                 val response = friendRequestService.rejectFriendRequest(requestId, "Bearer $token")
                 
+                Log.d(TAG, "📥 Response code: ${response.code()}")
+                Log.d(TAG, "📥 Response message: ${response.message()}")
+                
                 if (response.isSuccessful) {
-                    Log.d(TAG, "✅ Solicitud rechazada")
-                    loadFriendRequests() // Recargar lista
+                    Log.d(TAG, "✅ Solicitud rechazada exitosamente")
+                    // Eliminar de la lista local inmediatamente
+                    _friendRequests.value = _friendRequests.value.filter { it.id != requestId }
+                    Log.d(TAG, "✅ Solicitud removida de la lista. Restantes: ${_friendRequests.value.size}")
                 } else {
-                    Log.e(TAG, "❌ Error al rechazar: ${response.code()}")
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "❌ Error al rechazar: ${response.code()} - ${response.message()}")
+                    Log.e(TAG, "❌ Error body: $errorBody")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Excepción al rechazar solicitud", e)
+            } finally {
+                processingRequests.remove(requestId)
             }
         }
     }
@@ -176,7 +214,9 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
                 
                 if (response.isSuccessful) {
                     Log.d(TAG, "✅ Invitación aceptada")
-                    loadGroupInvitations() // Recargar lista
+                    // Eliminar de la lista local inmediatamente
+                    _groupInvitations.value = _groupInvitations.value.filter { it.id != invitationId }
+                    Log.d(TAG, "✅ Invitación removida de la lista. Restantes: ${_groupInvitations.value.size}")
                 } else {
                     Log.e(TAG, "❌ Error al aceptar: ${response.code()}")
                 }
@@ -199,7 +239,9 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
                 
                 if (response.isSuccessful) {
                     Log.d(TAG, "✅ Invitación rechazada")
-                    loadGroupInvitations() // Recargar lista
+                    // Eliminar de la lista local inmediatamente
+                    _groupInvitations.value = _groupInvitations.value.filter { it.id != invitationId }
+                    Log.d(TAG, "✅ Invitación removida de la lista. Restantes: ${_groupInvitations.value.size}")
                 } else {
                     Log.e(TAG, "❌ Error al rechazar: ${response.code()}")
                 }
@@ -209,3 +251,4 @@ class RequestsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 }
+

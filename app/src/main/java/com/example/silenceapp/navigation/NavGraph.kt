@@ -140,7 +140,7 @@ fun NavGraph(navController: NavHostController) {
                         }
                     }
                 } else {
-                    EditProfileScreen(navController, authViewModel, userViewModel)
+                    EditProfileScreen(navController, authViewModel, userViewModel, searchViewModel)
                 }
             }
             composable("notifications") {

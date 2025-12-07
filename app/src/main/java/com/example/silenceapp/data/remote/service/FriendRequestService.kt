@@ -9,7 +9,7 @@ import retrofit2.http.Path
 
 interface FriendRequestService {
     
-    @GET("friend-request/user")
+    @GET("friend-request/user/received")
     suspend fun getFriendRequests(
         @Header("Authorization") token: String
     ): Response<List<FriendRequestResponse>>
