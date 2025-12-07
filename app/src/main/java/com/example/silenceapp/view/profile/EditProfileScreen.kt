@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.silenceapp.viewmodel.AuthViewModel
+import com.example.silenceapp.viewmodel.SearchViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,7 +44,12 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel, userViewModel: UserViewModel){
+fun EditProfileScreen(
+    navController: NavController, 
+    authViewModel: AuthViewModel, 
+    userViewModel: UserViewModel,
+    searchViewModel: SearchViewModel
+){
 
     val firebaseViewModel: FirebaseViewModel = viewModel()
     var profile by remember { mutableStateOf<ProfileResponse?>(null) }
@@ -500,7 +506,13 @@ fun EditProfileScreen(navController: NavController, authViewModel: AuthViewModel
         }
 
         Button(onClick = {
+            // Limpiar datos del SearchViewModel
+            searchViewModel.clearData()
+            
+            // Hacer logout
             authViewModel.logout()
+            
+            // Navegar a login
             navController.navigate("login")
         }) {
             Text("Logout")

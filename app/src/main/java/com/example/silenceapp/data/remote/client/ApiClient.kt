@@ -13,6 +13,7 @@ import com.example.silenceapp.data.remote.service.LikeService
 import com.example.silenceapp.data.remote.service.NotificationService
 import com.example.silenceapp.data.remote.service.PostService
 import com.example.silenceapp.data.remote.service.UserService
+import com.example.silenceapp.data.remote.service.SearchService
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import okhttp3.OkHttpClient
@@ -20,6 +21,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+
 
 object ApiClient {
     private const val BASE_URL = BuildConfig.BASE_URL
@@ -67,6 +69,7 @@ object ApiClient {
     val notificationService: NotificationService = retrofit.create(NotificationService::class.java)
     val friendRequestService: FriendRequestService = retrofit.create(FriendRequestService::class.java)
     val groupInvitationService: GroupInvitationService = retrofit.create(GroupInvitationService::class.java)
+    val searchService: SearchService = retrofit.create(SearchService::class.java)
 
     init {
         Log.d(TAG, "Using BASE_URL: $BASE_URL")
