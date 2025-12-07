@@ -162,7 +162,6 @@ fun ProfileScreen(
                 }
                 
                 // Convertir PostResponse a Post entity para usar PostCard
-                val gson = Gson()
                 val displayedPostsAsEntity = displayedPosts.map { postResponse ->
                     Post(
                         id = 0, // No importa para visualización
@@ -171,7 +170,7 @@ fun ProfileScreen(
                         userName = if (postResponse.esAnonimo) "Anónimo" else (postResponse.owner?.nombre ?: "Usuario desconocido"),
                         userImageProfile = postResponse.owner?.imagen?.firstOrNull(),
                         description = postResponse.description,
-                        images = postResponse.imagen?.let { gson.toJson(it) },
+                        images = postResponse.imagen?.filterNotNull()?.filter { it.isNotBlank() } ?: emptyList(),
                         cantLikes = postResponse.cantLikes,
                         cantComentarios = postResponse.cantComentarios,
                         esAnonimo = postResponse.esAnonimo,
