@@ -12,6 +12,9 @@ private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale
     timeZone = TimeZone.getTimeZone("UTC")
 }
 fun PostResponse.toLocalPost(currentUserId: String? = null): Post {
+    // Log para debug
+    android.util.Log.d("PostMapper", "🔍 Mapeando PostResponse: id='${this.id}', desc='${this.description?.take(20)}'")
+    
     // Limpiar la lista de imágenes, filtrando nulls y vacíos
     val cleanImages = when {
         imagen.isNullOrEmpty() -> emptyList()

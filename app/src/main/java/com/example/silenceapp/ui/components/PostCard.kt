@@ -61,11 +61,11 @@ fun PostCard(
             .fillMaxWidth()
             .padding(horizontal = 4.dp, vertical = 12.dp)
             .clickable {
-                if(post.remoteId != null){
+                if(!post.remoteId.isNullOrBlank()){
                     onClick(post.remoteId)
-                    }else{
+                } else {
                     Toast.makeText(context, "No se pudo cargar el post", Toast.LENGTH_SHORT).show()
-                    }
+                }
             },
         shape = RectangleShape,
         colors = CardDefaults.cardColors(

@@ -19,7 +19,13 @@ class ApiPostRepository (
 
     suspend fun getAllPosts(currentUserId: String? = null): List<Post> {
         val response = api.getAllPosts()
-        return response.map{ it.toLocalPost(currentUserId) }
+        android.util.Log.d("ApiPostRepository", "📡 Raw API response: ${response.size} posts")
+        response.forEach { postResponse ->
+            android.util.Log.d("ApiPostRepository", "   - Raw id: '${postResponse.id}', desc: ${postResponse.description?.take(20)}")
+        }
+        return response
+            .filter { it.id != null } // Filtrar posts sin ID
+            .map { it.toLocalPost(currentUserId) }
     }
 
     suspend fun getPostById(id: String, currentUserId: String? = null): Post {

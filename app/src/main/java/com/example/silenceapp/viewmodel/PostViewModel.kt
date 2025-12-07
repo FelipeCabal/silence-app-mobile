@@ -65,8 +65,15 @@ class PostViewModel(application: Application): AndroidViewModel(application){
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             try {
-                // Primero cargar posts locales
+                // ⚠️ TEMPORAL: Limpiar posts sin remoteId de la BD
                 val localPosts = withContext(Dispatchers.IO) {
+                    val allPosts = repository.getPosts()
+                    // Eliminar posts sin remoteId
+                    allPosts.filter { it.remoteId == null }.forEach { post ->
+                        android.util.Log.d("PostViewModel", "🗑️ Eliminando post sin remoteId: id=${post.id}")
+                        repository.deletePost(post.id)
+                    }
+                    // Retornar solo posts válidos
                     repository.getPosts()
                 }
                 _uiState.value = _uiState.value.copy(posts = localPosts, isLoading = false)
@@ -88,10 +95,16 @@ class PostViewModel(application: Application): AndroidViewModel(application){
             try {
                 // Obtener posts de la API
                 val remotePosts = apiRepository.getAllPosts()
+                android.util.Log.d("PostViewModel", "📥 Posts de API: ${remotePosts.size}")
+                remotePosts.forEach { post ->
+                    android.util.Log.d("PostViewModel", "  - Post remoteId: ${post.remoteId}, desc: ${post.description?.take(30)}")
+                }
+                
                 val existinPosts = repository.getPosts()
                 val existingIds = existinPosts.map{it.remoteId}.toSet()
 
                 val newPosts = remotePosts.filter {it.remoteId !in existingIds}
+                android.util.Log.d("PostViewModel", "🆕 Posts nuevos a guardar: ${newPosts.size}")
 
                 // Guardar en base de datos local
                 newPosts.forEach { post ->
@@ -100,6 +113,11 @@ class PostViewModel(application: Application): AndroidViewModel(application){
 
                 // Actualizar UI con los posts locales
                 val updatedPosts = repository.getPosts()
+                android.util.Log.d("PostViewModel", "💾 Posts en BD local: ${updatedPosts.size}")
+                updatedPosts.forEach { post ->
+                    android.util.Log.d("PostViewModel", "  - Post id=${post.id}, remoteId: ${post.remoteId}, desc: ${post.description?.take(30)}")
+                }
+                
                 withContext(Dispatchers.Main) {
                     _uiState.value = _uiState.value.copy(
                         posts = updatedPosts,

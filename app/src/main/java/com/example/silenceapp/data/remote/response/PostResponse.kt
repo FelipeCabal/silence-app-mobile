@@ -43,7 +43,7 @@ class ImagenDeserializer : JsonDeserializer<List<String?>?> {
 }
 
 data class PostResponse(
-    @SerializedName("_id") val id: String,
+    @SerializedName(value = "id", alternate = ["_id"]) val id: String?,
     val owner: ProfileResponse?,
     val description: String,
     @JsonAdapter(ImagenDeserializer::class)
