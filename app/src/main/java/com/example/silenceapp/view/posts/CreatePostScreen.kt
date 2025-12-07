@@ -1,5 +1,7 @@
 package com.example.silenceapp.view.posts
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,6 +64,7 @@ import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.primaryColor
 import com.example.silenceapp.viewmodel.PostViewModel
 import com.example.silenceapp.viewmodel.AuthViewModel
+import com.example.silenceapp.viewmodel.FirebaseViewModel
 import com.example.silenceapp.data.remote.response.ProfileResponse
 import androidx.compose.ui.geometry.Size
 import com.example.silenceapp.ui.theme.DimGray
@@ -74,14 +77,17 @@ fun CreatePostScreen(
     navController: NavController,
     imageUri: String?,
     authViewModel: AuthViewModel,
-    postViewModel: PostViewModel = viewModel()
+    postViewModel: PostViewModel = viewModel(),
+    firebaseViewModel: FirebaseViewModel = viewModel()
 ){
     var message by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false)}
     var isPublishing by remember { mutableStateOf(false) }
     var esAnonimo by remember { mutableStateOf(false) }
+    var showImageLimitError by remember { mutableStateOf(false) }
     // Mantener múltiples imágenes seleccionadas localmente
     val pickedImages = remember { mutableStateListOf<String>() }
+    val maxImages = 5
     
     // Obtener perfil del usuario
     var userProfile by remember { mutableStateOf<ProfileResponse?>(null) }
@@ -95,7 +101,9 @@ fun CreatePostScreen(
     // Inicializar con la imagen recibida (si existe) sólo una vez
     LaunchedEffect(imageUri) {
         imageUri?.let { uri ->
-            if (!pickedImages.contains(uri)) pickedImages.add(uri)
+            if (!pickedImages.contains(uri) && pickedImages.size < maxImages) {
+                pickedImages.add(uri)
+            }
         }
     }
 
@@ -104,7 +112,12 @@ fun CreatePostScreen(
     // Obtener acciones de cámara y galeria
     val imagePickerActions = rememberImagePickerActions(
         onImagePicked = { uri ->
-            pickedImages.add(uri.toString())
+            if (pickedImages.size < maxImages) {
+                pickedImages.add(uri.toString())
+                showImageLimitError = false
+            } else {
+                showImageLimitError = true
+            }
         }
     )
 
@@ -210,37 +223,65 @@ fun CreatePostScreen(
                     ImagePreviewItem(
                         uri = uri,
                         index = index,
-                        onRemove = { pickedImages.removeAt(index) }
+                        onRemove = { 
+                            pickedImages.removeAt(index)
+                            showImageLimitError = false
+                        }
                     )
                 }
             }
         }
 
-        Row(
-            modifier = Modifier
-                .padding(2.dp),
-            horizontalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            IconButton(
-                onClick = { imagePickerActions.openGallery() },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Image,
-                    contentDescription = "Galería",
-                    tint = primaryColor
+        Column {
+            if (showImageLimitError) {
+                Text(
+                    text = "Has alcanzado el límite de $maxImages imágenes",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 2.dp, vertical = 4.dp)
                 )
             }
-
-            IconButton(
-                onClick = { imagePickerActions.openCamera() },
-                modifier = Modifier.size(40.dp)
+            
+            Row(
+                modifier = Modifier
+                    .padding(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.CameraAlt,
-                    contentDescription = "Cámara",
-                    tint = primaryColor,
-                )
+                IconButton(
+                    onClick = { 
+                        if (pickedImages.size < maxImages) {
+                            imagePickerActions.openGallery()
+                        } else {
+                            showImageLimitError = true
+                        }
+                    },
+                    modifier = Modifier.size(40.dp),
+                    enabled = pickedImages.size < maxImages
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Image,
+                        contentDescription = "Galería",
+                        tint = if (pickedImages.size < maxImages) primaryColor else Color.Gray
+                    )
+                }
+
+                IconButton(
+                    onClick = { 
+                        if (pickedImages.size < maxImages) {
+                            imagePickerActions.openCamera()
+                        } else {
+                            showImageLimitError = true
+                        }
+                    },
+                    modifier = Modifier.size(40.dp),
+                    enabled = pickedImages.size < maxImages
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Cámara",
+                        tint = if (pickedImages.size < maxImages) primaryColor else Color.Gray,
+                    )
+                }
             }
         }
 
@@ -265,21 +306,70 @@ fun CreatePostScreen(
                         }
                         
                         isPublishing = true
-                        postViewModel.createPost(
-                            userId = profile.id,
-                            userName = profile.nombre,
-                            description = message.ifEmpty { null },
-                            imageUris = pickedImages.toList(),
-                            esAnonimo = esAnonimo
-                        ) { success ->
-                            isPublishing = false
-                            if (success) {
-                                // Limpiar formulario y navegar al home
-                                message = ""
-                                pickedImages.clear()
-                                navController.navigate("home") {
-                                    // Limpiar el back stack para que no pueda volver a login/create-post
-                                    popUpTo("login") { inclusive = true }
+                        
+                        // Si hay imágenes, subirlas a Firebase primero
+                        if (pickedImages.isNotEmpty()) {
+                            var uploadedCount = 0
+                            val uploadedUrls = mutableListOf<String>()
+                            
+                            pickedImages.forEach { uriString ->
+                                firebaseViewModel.uploadImage(
+                                    imageUri = Uri.parse(uriString),
+                                    folder = "posts/${profile.id}"
+                                ) { response ->
+                                    if (response != null && response.success) {
+                                        uploadedUrls.add(response.data.url)
+                                    }
+                                    uploadedCount++
+                                    
+                                    // Cuando todas las imágenes se hayan procesado
+                                    if (uploadedCount == pickedImages.size) {
+                                        if (uploadedUrls.isNotEmpty()) {
+                                            // Crear post con las URLs de Firebase (ya permanentes)
+                                            postViewModel.createPost(
+                                                userId = profile.id,
+                                                userName = profile.nombre,
+                                                description = message.ifEmpty { null },
+                                                imageUris = uploadedUrls, // URLs de Firebase
+                                                esAnonimo = esAnonimo
+                                            ) { success ->
+                                                isPublishing = false
+                                                if (success) {
+                                                    message = ""
+                                                    pickedImages.clear()
+                                                    navController.navigate("home") {
+                                                        popUpTo("login") { inclusive = true }
+                                                    }
+                                                } else {
+                                                    Log.e("CreatePost", "Error al crear el post en la API")
+                                                }
+                                            }
+                                        } else {
+                                            // Error al subir imágenes
+                                            isPublishing = false
+                                            Log.e("CreatePost", "Error: Ninguna imagen se subió correctamente")
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // Sin imágenes, crear post directamente
+                            postViewModel.createPost(
+                                userId = profile.id,
+                                userName = profile.nombre,
+                                description = message.ifEmpty { null },
+                                imageUris = emptyList(),
+                                esAnonimo = esAnonimo
+                            ) { success ->
+                                isPublishing = false
+                                if (success) {
+                                    message = ""
+                                    pickedImages.clear()
+                                    navController.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                } else {
+                                    Log.e("CreatePost", "Error al crear el post en la API")
                                 }
                             }
                         }

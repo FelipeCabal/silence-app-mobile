@@ -49,26 +49,9 @@ fun PostCard(
     onLikeClick: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val gson = Gson()
-
-    // ✅ CORRECCIÓN: Manejar el parsing de forma segura
-    val imageUris = try {
-        when {
-            post.images.isNullOrEmpty() -> emptyList()
-            post.images.startsWith("[") -> {
-                // Es un JSON array
-                gson.fromJson<List<String>>(post.images, object : TypeToken<List<String>>() {}.type)
-            }
-            post.images.startsWith("http") -> {
-                // Es una URL simple
-                listOf(post.images)
-            }
-            else -> emptyList()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        emptyList()
-    }
+    
+    // images ahora es List<String> directamente
+    val imageUris = post.images
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val formattedDate = dateFormat.format(Date(post.createdAt))
 

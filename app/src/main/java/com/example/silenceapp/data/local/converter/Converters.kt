@@ -38,6 +38,19 @@ class Converters {
         return gson.fromJson(commentsJson, type)
     }
 
+    // --- Para la lista de strings (imágenes) ---
+    @TypeConverter
+    fun fromStringList(list: List<String>?): String? {
+        return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun toStringList(json: String?): List<String>? {
+        if (json == null) return emptyList()
+        val type = object : TypeToken<List<String>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
     // --- Para 'createdAt' (Timestamp) ---
     @TypeConverter
     fun fromTimestamp(timestamp: Timestamp?): Long? {
