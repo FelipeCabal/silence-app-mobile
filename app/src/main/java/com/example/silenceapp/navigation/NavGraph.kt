@@ -77,7 +77,7 @@ fun NavGraph(navController: NavHostController) {
 
     // Ocultar barras en login y register
     val showBar = currentRoute !in listOf("login", "register")
-    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register") &&
+    val showBarTop = currentRoute !in listOf("login", "edit-profile", "register", "post/{id}", "add-post", "search", "chats", "chat/{chatId}/{chatName}/{chatType}", "create-chat") &&
             !(currentRoute?.startsWith("add-post") ?: false)
 
     Scaffold(
