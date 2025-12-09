@@ -26,14 +26,15 @@ import com.example.silenceapp.ui.theme.DarkGray
 import com.example.silenceapp.ui.theme.MintGreen
 
 @Composable
-fun CommentCard(comment: Comment){
+fun CommentCard(comment: Comment) {
     Row(
         modifier = Modifier
             .padding(20.dp, 14.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.Top
-    ){
-        if(comment.usuario.imagen.isNullOrEmpty()){
+    ) {
+        val userImage = comment.usuario.imagen
+        if (userImage.isNullOrEmpty()) {
             Text(
                 text = comment.usuario.nombre.first().uppercase(),
                 color = Color.Black,
@@ -41,7 +42,7 @@ fun CommentCard(comment: Comment){
             )
         } else {
             Image(
-                painter = rememberAsyncImagePainter(comment.usuario.imagen),
+                painter = rememberAsyncImagePainter(userImage),
                 contentDescription = "Foto de perfil de ${comment.usuario.nombre}",
                 modifier = Modifier
                     .height(50.dp)
@@ -60,7 +61,7 @@ fun CommentCard(comment: Comment){
 
                     )
                 .padding(12.dp),
-        ){
+        ) {
             Text(
                 text = comment.usuario.nombre,
                 style = MaterialTheme.typography.bodyMedium,

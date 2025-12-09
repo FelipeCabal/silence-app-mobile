@@ -26,9 +26,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.fillMaxWidth
 import com.example.silenceapp.ui.theme.*
+import com.example.silenceapp.viewmodel.PostViewModel
 
 @Composable
-fun BottomNavigationBar(navController: NavController)
+fun BottomNavigationBar(
+    navController: NavController,
+    postViewModel: PostViewModel? = null
+)
 {
     // Obtener la ruta actual correctamente
     val navBackStackEntry = navController.currentBackStackEntryAsState()
@@ -64,7 +68,11 @@ fun BottomNavigationBar(navController: NavController)
                     }
                 }},
             selected = currentRoute == "home",
-            onClick = { navController.navigate("home") }
+            onClick = { 
+                // Recargar publicaciones si estamos yendo a home
+                postViewModel?.loadPosts()
+                navController.navigate("home")
+            }
         )
         NavigationBarItem(
             colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent),
@@ -159,7 +167,7 @@ fun BottomNavigationBar(navController: NavController)
                             modifier = Modifier.size(32.dp)
                         )}
 
-                    if (currentRoute == "edit-profile") {
+                    if (currentRoute?.startsWith("profile/") == true || currentRoute == "edit-profile") {
                         Box(
                             modifier = Modifier
                                 .height(3.dp)
@@ -168,8 +176,12 @@ fun BottomNavigationBar(navController: NavController)
                         )
                     }
                 }},
-            selected =  currentRoute == "edit-profile",
-            onClick = { navController.navigate("edit-profile") }
+            selected =  currentRoute?.startsWith("profile/") == true || currentRoute == "edit-profile",
+            onClick = {
+                navController.navigate("profile/self") {
+                    launchSingleTop = true
+                }
+            }
         )
     }
 }

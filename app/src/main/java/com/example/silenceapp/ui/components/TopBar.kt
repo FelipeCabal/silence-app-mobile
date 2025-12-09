@@ -7,11 +7,13 @@ import androidx.compose.material.icons.filled.Chat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import  com.example.silenceapp.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(navController: NavController? = null) {
     TopAppBar(
         title = {
             Text(
@@ -21,7 +23,9 @@ fun TopBar() {
             )
         },
         actions = {
-            IconButton(onClick = { /* mensajes */ }) {
+            IconButton(onClick = { 
+                navController?.navigate("chats")
+            }) {
                 Icon(
                     imageVector = Icons.Default.Chat,
                     contentDescription = "Chats",

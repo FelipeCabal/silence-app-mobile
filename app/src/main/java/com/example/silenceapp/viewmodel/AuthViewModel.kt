@@ -22,6 +22,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val api = ApiClient.authService
     private val store = AuthDataStore(application)
+    private val database = DatabaseProvider.getDatabase(application)
 
     private val repository = AuthRepository( api, store)
 
@@ -49,11 +50,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             onResult(token)
         }
     }
+    fun loadUserId(onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val userId = store.getUserId().first()
+            onResult(userId)
+        }
+    }
 
     //AUTH
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             try {
+                // Limpiar BD local antes de login para evitar datos de usuarios previos
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+                
                 val success = repository.loginUser(email, password)
                 _authSuccess.value = success
             } catch (e: Exception) {
@@ -72,6 +84,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
+                // Limpiar BD local antes de register
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+                
                 val success = repository.registerUser(nombre, email, password, sexo, fechaNto, pais)
                 _authSuccess.value = success
             } catch (e: Exception) {
@@ -81,18 +98,42 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun logout() {
         viewModelScope.launch {
+            android.util.Log.d("AuthViewModel", "🚪 Cerrando sesión...")
+            
+            // Desconectar WebSocket
+            try {
+                val socketManager = com.example.silenceapp.data.remote.socket.SocketIOManager.getInstance("https://silence-app-back-production.up.railway.app/api/")
+                socketManager.disconnect()
+                android.util.Log.d("AuthViewModel", "✅ WebSocket desconectado")
+            } catch (e: Exception) {
+                android.util.Log.e("AuthViewModel", "❌ Error al desconectar WebSocket", e)
+            }
+            
+            // Limpiar BD local al cerrar sesión
+            withContext(Dispatchers.IO) {
+                database.clearAllTables()
+                android.util.Log.d("AuthViewModel", "✅ Base de datos limpiada")
+            }
+            
             store.saveToken("")
+            store.saveUserId("")
+            android.util.Log.d("AuthViewModel", "✅ Token y userId limpiados")
         }
     }
     fun getProfile(onResult: (ProfileResponse?) -> Unit) {
         viewModelScope.launch {
+            android.util.Log.d("AuthViewModel", "🔄 getProfile started")
             try {
+                android.util.Log.d("AuthViewModel", "📞 Calling repository.getProfile()")
                 val profile = withContext(Dispatchers.IO) { repository.getProfile() }
+                android.util.Log.d("AuthViewModel", "✅ Profile received: ${profile.nombre}")
                 onResult(profile)
             } catch (e: HttpException) {
+                android.util.Log.e("AuthViewModel", "❌ HttpException: ${e.code()} - ${e.message()}")
                 // 401 u otros errores: devolver null para que la UI maneje reautenticación
                 onResult(null)
             } catch (e: Exception) {
+                android.util.Log.e("AuthViewModel", "💥 Exception: ${e.message}", e)
                 onResult(null)
             }
         }
