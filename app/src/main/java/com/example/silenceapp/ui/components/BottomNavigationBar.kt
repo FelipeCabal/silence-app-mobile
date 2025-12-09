@@ -69,9 +69,11 @@ fun BottomNavigationBar(
                 }},
             selected = currentRoute == "home",
             onClick = { 
-                // Recargar publicaciones si estamos yendo a home
+                // Recargar publicaciones cada vez que se presiona Home
                 postViewModel?.loadPosts()
-                navController.navigate("home")
+                if (currentRoute != "home") {
+                    navController.navigate("home")
+                }
             }
         )
         NavigationBarItem(

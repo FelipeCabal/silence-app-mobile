@@ -259,20 +259,20 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     
-    private fun mapPublicacionSummaryToPosts(
-        publicaciones: List<com.example.silenceapp.data.remote.response.PublicacionSummary>,
+    private fun mapPublicacionesToPosts(
+        publicaciones: List<com.example.silenceapp.data.remote.response.PostPublicacion>,
         owner: ProfileResponse
     ): List<PostResponse> {
         return publicaciones.reversed().map { pub ->
             PostResponse(
                 id = pub.id,
                 owner = owner,
-                description = pub.summary.description,
-                imagen = pub.summary.imagen,
-                cantLikes = 0, // No viene en el summary
-                cantComentarios = 0, // No viene en el summary
-                esAnonimo = pub.summary.esAnonimo,
-                createdAt = "", // No viene en el summary
+                description = pub.description,
+                imagen = pub.imagen,
+                cantLikes = pub.cantLikes,
+                cantComentarios = pub.cantComentarios,
+                esAnonimo = pub.esAnonimo,
+                createdAt = pub.createdAt,
             )
         }
     }
@@ -281,13 +281,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         profileResponse: ProfileResponse,
         targetUserId: String
     ): List<PostResponse> {
-        val postsFromProfile = profileResponse.publicaciones
-        return if (postsFromProfile.isNotEmpty()) {
-            mapPublicacionSummaryToPosts(postsFromProfile, profileResponse)
-        } else {
-            val remotePosts = repository.getUserPosts(targetUserId)
-            attachOwnerToPosts(remotePosts, profileResponse)
-        }
+        return mapPublicacionesToPosts(profileResponse.publicaciones, profileResponse)
     }
 
     private fun attachOwnerToPosts(

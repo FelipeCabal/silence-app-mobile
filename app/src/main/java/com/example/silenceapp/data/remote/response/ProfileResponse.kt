@@ -20,7 +20,7 @@ data class ProfileResponse(
     val publicacionesCount: Int = 0,
     val relationshipStatus: RelationshipStatusResponse? = null,
     @SerializedName("ShowLikes") val showLikes: Boolean = false,
-    val publicaciones: List<PublicacionSummary> = emptyList(),
+    val publicaciones: List<PostPublicacion> = emptyList(),
     val comunidades: List<ComunidadInfo> = emptyList(),
     val grupos: List<GrupoInfo> = emptyList(),
     val solicitudesAmistad: List<FriendRequests> = emptyList(),
@@ -31,16 +31,15 @@ data class ProfileResponse(
     @SerializedName("__v") val v: Int
 )
 
-data class PublicacionSummary(
-    val id: String,
-    val summary: PostSummary
-)
-
-data class PostSummary(
-    val esAnonimo: Boolean,
+data class PostPublicacion(
+    @SerializedName("_id") val id: String,
     val description: String,
     @JsonAdapter(ImagenDeserializer::class)
-    val imagen: List<String?>?
+    val imagen: List<String?>?,
+    val cantLikes: Int,
+    val cantComentarios: Int,
+    val esAnonimo: Boolean,
+    val createdAt: String
 )
 
 data class FriendRequests(
