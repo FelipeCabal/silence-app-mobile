@@ -361,8 +361,15 @@ class SocketIOManager private constructor(
         // Evento: joinedChat
         on("joinedChat", onJoinedChat)
         
-        // Evento: messageReceived
+        // Evento: messageReceived (genérico)
         on("messageReceived", onMessageReceived)
+        
+        // 🔍 DEBUG: Capturar TODOS los eventos posibles del backend
+        on("message", onMessageReceived) // Por si usa "message"
+        on("private_message", onMessageReceived) // Por si usa "private_message"
+        on("group_message", onMessageReceived) // Por si usa "group_message"
+        on("community_message", onMessageReceived) // Por si usa "community_message"
+        on("newMessage", onMessageReceived) // Por si usa "newMessage"
         
         // Evento: userJoined
         on("userJoined", onUserJoined)
@@ -415,20 +422,82 @@ class SocketIOManager private constructor(
     
     private val onMessageReceived = Emitter.Listener { args ->
         try {
-            Log.d(TAG, "📨 onMessageReceived LISTENER ACTIVADO")
+            Log.d(TAG, "📨 ====== onMessageReceived LISTENER ACTIVADO ======")
             Log.d(TAG, "📨 Args recibidos: ${args.size} elementos")
             
+            if (args.isEmpty()) {
+                Log.e(TAG, "❌ No hay args en onMessageReceived")
+                return@Listener
+            }
+            
             val data = args[0] as JSONObject
-            Log.d(TAG, "📨 JSON completo: $data")
+            Log.d(TAG, "📨 JSON completo recibido: $data")
+            Log.d(TAG, "📨 JSON keys: ${data.keys().asSequence().toList()}")
             
             // El chatId está en el nivel superior
-            val chatId = data.getString("chatId")
+            val chatId = data.optString("chatId", "")
+            if (chatId.isEmpty()) {
+                Log.e(TAG, "❌ chatId vacío en messageReceived")
+                return@Listener
+            }
+            
             val chatTypeStr = data.optString("chatType", "group")
             
             // El mensaje está dentro de "message"
+            if (!data.has("message")) {
+                Log.e(TAG, "❌ No existe el campo 'message' en el JSON")
+                return@Listener
+            }
+            
             val messageObj = data.getJSONObject("message")
             Log.d(TAG, "📨 Message object: $messageObj")
+            Log.d(TAG, "📨 Message keys: ${messageObj.keys().asSequence().toList()}")
             
+            // 🔍 DETECCIÓN: El backend de chats privados envía estructura diferente
+            val isPrivateChatStructure = messageObj.has("lastMessage") && !messageObj.has("remitente")
+            
+            if (isPrivateChatStructure) {
+                Log.d(TAG, "🔐 Detectada estructura de CHAT PRIVADO (diferente)")
+                Log.d(TAG, "🔐 lastMessage: ${messageObj.optString("lastMessage", "")}")
+                
+                // Para chats privados, el mensaje está en "lastMessage"
+                // Necesitamos obtener el userId del contexto o del socket
+                val content = messageObj.optString("lastMessage", "")
+                val messageIdFromBackend = messageObj.optString("id", "")
+                
+                // El userId no viene en el mensaje, pero sabemos que es del backend
+                // Usamos el chatId como fallback temporal
+                val userId = "unknown" // El backend necesita incluir esto
+                
+                val timestamp = try {
+                    val createdAtStr = messageObj.optString("updatedAt", messageObj.optString("createdAt", ""))
+                    if (createdAtStr.isNotEmpty()) {
+                        val instant = java.time.Instant.parse(createdAtStr)
+                        instant.toEpochMilli()
+                    } else {
+                        System.currentTimeMillis()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parseando fecha: ${e.message}")
+                    System.currentTimeMillis()
+                }
+                
+                // Generar ID único para el mensaje
+                val messageId = if (messageIdFromBackend == chatId || messageIdFromBackend.isEmpty()) {
+                    "${chatId}_${timestamp}_${content.hashCode()}"
+                } else {
+                    messageIdFromBackend
+                }
+                
+                Log.w(TAG, "⚠️ ESTRUCTURA INCORRECTA DEL BACKEND PARA CHAT PRIVADO")
+                Log.w(TAG, "⚠️ El backend debe enviar: { remitente, mensaje, fecha, _id }")
+                Log.w(TAG, "⚠️ Pero envió el objeto del chat completo")
+                Log.w(TAG, "⚠️ Ignorando este mensaje hasta que se corrija el backend")
+                
+                return@Listener
+            }
+            
+            // Estructura normal (grupos y comunidades)
             // Los campos vienen en español del backend:
             // - remitente (no userId)
             // - mensaje (no content)
@@ -485,7 +554,9 @@ class SocketIOManager private constructor(
             emitEvent(event)
             Log.d(TAG, "💬 Message received: ${messageData._id} from ${messageData.userId}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error parseando 'messageReceived': ${e.message}")
+            Log.e(TAG, "❌ Error parseando 'messageReceived'", e)
+            Log.e(TAG, "❌ Mensaje de error: ${e.message}")
+            Log.e(TAG, "❌ Stack trace: ${e.stackTraceToString()}")
         }
     }
     
@@ -584,7 +655,9 @@ class SocketIOManager private constructor(
      * Unirse a un chat
      */
     fun joinChat(chatId: String, chatType: ChatType) {
-        Log.d(TAG, "📤 joinChat llamado: chatId=$chatId, type=$chatType")
+        Log.d(TAG, "📤 ====== UNIRSE A CHAT ======")
+        Log.d(TAG, "📤 chatId: $chatId")
+        Log.d(TAG, "📤 chatType: $chatType")
         Log.d(TAG, "📤 Socket conectado? ${chatSocket?.connected()}")
         Log.d(TAG, "📤 Socket ID: ${chatSocket?.id()}")
         
@@ -597,8 +670,18 @@ class SocketIOManager private constructor(
             put("chatId", chatId)
             put("chatType", chatType.toString())
         }
+        
+        Log.d(TAG, "📤 JSON enviado al servidor: $data")
         chatSocket?.emit("joinChat", data)
-        Log.d(TAG, "📤 Emitiendo joinChat: chatId=$chatId, type=$chatType")
+        Log.d(TAG, "✅ Evento 'joinChat' emitido exitosamente")
+        
+        // 🔍 Si es chat privado, agregar log especial
+        if (chatType == ChatType.PRIVATE) {
+            Log.d(TAG, "🔐 CHAT PRIVADO: Esperando mensajes en eventos:")
+            Log.d(TAG, "   - messageReceived")
+            Log.d(TAG, "   - private_message")
+            Log.d(TAG, "   - message")
+        }
     }
     
     /**
@@ -617,12 +700,12 @@ class SocketIOManager private constructor(
      * Enviar mensaje
      */
     fun sendMessage(chatId: String, message: String, chatType: ChatType) {
-        Log.d(TAG, "📤 sendMessage llamado:")
-        Log.d(TAG, "   chatId: $chatId")
-        Log.d(TAG, "   message: ${message.take(50)}${if(message.length > 50) "..." else ""}")
-        Log.d(TAG, "   chatType: $chatType")
-        Log.d(TAG, "   Socket conectado? ${chatSocket?.connected()}")
-        Log.d(TAG, "   Socket ID: ${chatSocket?.id()}")
+        Log.d(TAG, "📤 ====== ENVIAR MENSAJE ======")
+        Log.d(TAG, "📤 chatId: $chatId")
+        Log.d(TAG, "📤 message: ${message.take(50)}${if(message.length > 50) "..." else ""}")
+        Log.d(TAG, "📤 chatType: $chatType")
+        Log.d(TAG, "📤 Socket conectado? ${chatSocket?.connected()}")
+        Log.d(TAG, "📤 Socket ID: ${chatSocket?.id()}")
         
         if (chatSocket?.connected() != true) {
             Log.w(TAG, "⚠️ Socket no conectado al intentar enviar mensaje")
@@ -638,6 +721,12 @@ class SocketIOManager private constructor(
         Log.d(TAG, "📤 JSON a enviar: $data")
         chatSocket?.emit("sendMessage", data)
         Log.d(TAG, "✅ Mensaje emitido al servidor")
+        
+        // 🔍 Si es chat privado, agregar log especial
+        if (chatType == ChatType.PRIVATE) {
+            Log.d(TAG, "🔐 MENSAJE DE CHAT PRIVADO enviado")
+            Log.d(TAG, "🔐 Esperando recibir respuesta del servidor...")
+        }
     }
     
     /**

@@ -273,82 +273,119 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             }
             
             is SocketEvent.MessageReceived -> {
-                Log.d(TAG, "💬 Mensaje recibido de Socket.IO:")
-                Log.d(TAG, "   - ID: ${event.message._id}")
-                Log.d(TAG, "   - ChatId del evento: ${event.message.chatId}")
-                Log.d(TAG, "   - ChatId del mensaje: ${event.chatId}")
-                Log.d(TAG, "   - De userId: ${event.message.userId}")
-                Log.d(TAG, "   - Contenido: ${event.message.content.take(50)}")
+                Log.d(TAG, "📨 ====== MENSAJE RECIBIDO DE SOCKET.IO ======")
+                Log.d(TAG, "📨 ID: ${event.message._id}")
+                Log.d(TAG, "📨 ChatId del evento: ${event.chatId}")
+                Log.d(TAG, "📨 ChatId del mensaje: ${event.message.chatId}")
+                Log.d(TAG, "📨 ChatType: ${event.chatType}")
+                Log.d(TAG, "📨 De userId: ${event.message.userId}")
+                Log.d(TAG, "📨 Contenido: ${event.message.content.take(50)}")
+                
+                // 🔍 Log especial para chats privados
+                if (event.chatType == com.example.silenceapp.data.remote.socket.ChatType.PRIVATE) {
+                    Log.d(TAG, "🔐 ¡ES UN MENSAJE DE CHAT PRIVADO!")
+                }
                 
                 // Obtener userId actual para no duplicar mensajes propios
                 val currentUserId = authDataStore.getUserId().first()
-                Log.d(TAG, "   - Mi userId: $currentUserId")
-                Log.d(TAG, "   - ¿Es mi mensaje? ${event.message.userId == currentUserId}")
+                Log.d(TAG, "📨 Mi userId: $currentUserId")
+                Log.d(TAG, "📨 ¿Es mi mensaje? ${event.message.userId == currentUserId}")
                 
-                // Solo guardar si NO es mi propio mensaje (los propios ya se guardan optimísticamente)
-                if (event.message.userId != currentUserId) {
-                    Log.d(TAG, "✅ Es mensaje de otro usuario, guardando en Room...")
+                withContext(Dispatchers.IO) {
+                    // Verificar si el mensaje ya existe (por ID del servidor)
+                    val existingMessage = messageDao.getMessageById(event.message._id)
+                    if (existingMessage != null) {
+                        Log.w(TAG, "⚠️ Mensaje ya existe en Room: ${event.message._id}, IGNORANDO")
+                        return@withContext
+                    }
                     
-                    // Verificar que el chat existe
-                    withContext(Dispatchers.IO) {
-                        // Verificar si el mensaje ya existe
-                        val existingMessage = messageDao.getMessageById(event.message._id)
-                        if (existingMessage != null) {
-                            Log.w(TAG, "⚠️ Mensaje ya existe en Room: ${event.message._id}, IGNORANDO")
+                    // Si es mi propio mensaje, buscar y actualizar el temporal
+                    if (event.message.userId == currentUserId) {
+                        Log.d(TAG, "✅ Es mi propio mensaje, buscando mensaje temporal...")
+                        
+                        // Buscar mensajes temporales recientes (últimos 10 segundos)
+                        val recentMessages = messageDao.getMessagesByChatId(event.message.chatId)
+                            .first() // Get first emission from Flow
+                        
+                        val tempMessage = recentMessages
+                            .filter { it.id.startsWith("temp_") && it.userId == currentUserId }
+                            .filter { it.content == event.message.content }
+                            .maxByOrNull { it.timestamp }
+                        
+                        if (tempMessage != null) {
+                            Log.d(TAG, "✅ Mensaje temporal encontrado: ${tempMessage.id}")
+                            Log.d(TAG, "🔄 Actualizando con ID real: ${event.message._id}")
+                            
+                            // Eliminar mensaje temporal
+                            messageDao.deleteMessage(tempMessage)
+                            
+                            // Insertar con ID real del servidor
+                            val realMessage = tempMessage.copy(
+                                id = event.message._id,
+                                timestamp = event.message.timestamp,
+                                isRead = event.message.isRead
+                            )
+                            messageDao.insertMessage(realMessage)
+                            
+                            Log.d(TAG, "✅ Mensaje actualizado de temporal a real")
                             return@withContext
-                        }
-                        
-                        val chatExists = chatDao.getChatById(event.message.chatId) != null
-                        if (!chatExists) {
-                            Log.w(TAG, "⚠️ Chat no existe, creando placeholder...")
-                            val placeholderChat = Chat(
-                                id = event.message.chatId,
-                                name = "Chat",
-                                type = event.chatType.toString().lowercase(),
-                                image = "",
-                                description = "",
-                                lastMessageDate = System.currentTimeMillis().toString(),
-                                lastMessage = ""
-                            )
-                            chatDao.insertChat(placeholderChat)
-                        }
-                        
-                        // Obtener el nombre del usuario
-                        val userName = userDao.getUserByRemoteId(event.message.userId)?.nombre
-                        
-                        // Guardar mensaje
-                        val message = Message(
-                            id = event.message._id,
-                            chatId = event.message.chatId,
-                            content = event.message.content,
-                            userId = event.message.userId,
-                            timestamp = event.message.timestamp,
-                            type = event.message.type,
-                            isRead = false, // Marcar como no leído inicialmente
-                            userName = userName // Agregar el nombre del usuario
-                        )
-                        
-                        Log.d(TAG, "💾 Guardando mensaje en Room:")
-                        Log.d(TAG, "   - id: ${message.id}")
-                        Log.d(TAG, "   - chatId: ${message.chatId}")
-                        Log.d(TAG, "   - userId: ${message.userId}")
-                        Log.d(TAG, "   - content: ${message.content.take(30)}")
-                        Log.d(TAG, "   - timestamp: ${message.timestamp}")
-                        
-                        messageDao.insertMessage(message)
-                        Log.d(TAG, "✅ Mensaje guardado exitosamente")
-                        
-                        // Actualizar último mensaje del chat
-                        chatDao.getChatById(event.message.chatId)?.let { chat ->
-                            val updatedChat = chat.copy(
-                                lastMessage = message.content,
-                                lastMessageDate = message.timestamp.toString()
-                            )
-                            chatDao.updateChat(updatedChat)
+                        } else {
+                            Log.w(TAG, "⚠️ No se encontró mensaje temporal, guardando como nuevo")
                         }
                     }
-                } else {
-                    Log.d(TAG, "⚠️ Es mi propio mensaje, ignorando (ya guardado optimisticamente)")
+                    
+                    // Si NO es mi mensaje o no se encontró el temporal, guardar como nuevo
+                    Log.d(TAG, "✅ Guardando mensaje de otro usuario en Room...")
+                    
+                    // Verificar que el chat existe
+                    val chatExists = chatDao.getChatById(event.message.chatId) != null
+                    if (!chatExists) {
+                        Log.w(TAG, "⚠️ Chat no existe, creando placeholder...")
+                        val placeholderChat = Chat(
+                            id = event.message.chatId,
+                            name = "Chat",
+                            type = event.chatType.toString().lowercase(),
+                            image = "",
+                            description = "",
+                            lastMessageDate = System.currentTimeMillis().toString(),
+                            lastMessage = ""
+                        )
+                        chatDao.insertChat(placeholderChat)
+                    }
+                    
+                    // Obtener el nombre del usuario
+                    val userName = userDao.getUserByRemoteId(event.message.userId)?.nombre
+                    
+                    // Guardar mensaje
+                    val message = Message(
+                        id = event.message._id,
+                        chatId = event.message.chatId,
+                        content = event.message.content,
+                        userId = event.message.userId,
+                        timestamp = event.message.timestamp,
+                        type = event.message.type,
+                        isRead = false, // Marcar como no leído inicialmente
+                        userName = userName // Agregar el nombre del usuario
+                    )
+                    
+                    Log.d(TAG, "💾 Guardando mensaje en Room:")
+                    Log.d(TAG, "   - id: ${message.id}")
+                    Log.d(TAG, "   - chatId: ${message.chatId}")
+                    Log.d(TAG, "   - userId: ${message.userId}")
+                    Log.d(TAG, "   - content: ${message.content.take(30)}")
+                    Log.d(TAG, "   - timestamp: ${message.timestamp}")
+                    
+                    messageDao.insertMessage(message)
+                    Log.d(TAG, "✅ Mensaje guardado exitosamente")
+                    
+                    // Actualizar último mensaje del chat
+                    chatDao.getChatById(event.message.chatId)?.let { chat ->
+                        val updatedChat = chat.copy(
+                            lastMessage = message.content,
+                            lastMessageDate = message.timestamp.toString()
+                        )
+                        chatDao.updateChat(updatedChat)
+                    }
                 }
             }
             
