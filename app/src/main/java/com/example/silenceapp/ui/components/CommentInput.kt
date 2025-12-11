@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +32,8 @@ fun CommentInput(
     comment: String,
     onCommentChange: (String) -> Unit,
     onSendClick: () -> Unit,
+    isSending: Boolean = false,
+    error: String? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -62,7 +65,7 @@ fun CommentInput(
 
             IconButton(
                 onClick = onSendClick,
-                enabled = comment.isNotBlank(),
+                enabled = comment.isNotBlank() && !isSending,
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
@@ -70,7 +73,13 @@ fun CommentInput(
                         if (comment.isNotBlank()) primaryColor
                         else Color.Gray.copy(alpha = 0.3f)
                     )
-            ) {
+            ){
+                if(isSending){
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                }else {
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "Enviar comentario",
@@ -78,6 +87,15 @@ fun CommentInput(
                     modifier = Modifier.size(24.dp)
                 )
             }
+        }
+    }
+        if(error != null){
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
     }
 }

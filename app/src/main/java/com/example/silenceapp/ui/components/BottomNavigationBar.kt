@@ -73,6 +73,9 @@ fun BottomNavigationBar(
                 postViewModel?.loadPosts()
                 if (currentRoute != "home") {
                     navController.navigate("home")
+                } else {
+                    // Si ya estamos en home, también recargamos
+                    postViewModel?.loadPosts()
                 }
             }
         )

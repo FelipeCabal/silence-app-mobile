@@ -12,20 +12,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.silenceapp.ui.components.CommentInput
 import com.example.silenceapp.ui.components.PostDetailContent
+import com.example.silenceapp.viewmodel.CommentViewModel
 import com.example.silenceapp.viewmodel.PostViewModel
 
 @Composable
 fun PostDetailScreen(
     postId: String,
-    postViewModel: PostViewModel = viewModel()
+    postViewModel: PostViewModel = viewModel(),
 ) {
     val state by postViewModel.postDetailState.collectAsState()
+
+    var commentText by rememberSaveable { mutableStateOf("") }
 
     // Cargar detalle al entrar
     LaunchedEffect(postId) {
@@ -49,9 +55,17 @@ fun PostDetailScreen(
             Scaffold(
                 bottomBar = {
                     CommentInput(
-                        comment = "",
-                        onCommentChange = {},
-                        onSendClick = {}
+                        comment = commentText,
+                        onCommentChange = {newText -> commentText = newText},
+                        onSendClick = {
+                            postViewModel.sendComment(
+                                postRemoteId = postId,
+                                text = commentText
+                            )
+                            commentText = ""
+                        },
+                        isSending = state.isSendingComment,
+                        error = state.commentError
                     )
                 }
             ) { inner ->
@@ -63,6 +77,7 @@ fun PostDetailScreen(
                 ) {
                     PostDetailContent(
                         post = state.post!!,
+                        comments = state.comments,
                         onLikeClick = { remoteId ->
                             android.util.Log.d("PostDetailScreen", "🎯 onLikeClick triggered with remoteId: $remoteId")
                             postViewModel.toggleLike(remoteId)

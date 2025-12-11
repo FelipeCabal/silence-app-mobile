@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 11,
-    "identityHash": "9b49f4a2b5ac7a656af5645d2dcd7712",
+    "version": 12,
+    "identityHash": "bc021a98a5fb145f4027525fb13b3645",
     "entities": [
       {
         "tableName": "users",
@@ -68,7 +68,7 @@
       },
       {
         "tableName": "posts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `userImageProfile` TEXT, `description` TEXT, `images` TEXT NOT NULL, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `comentarios` TEXT, `esAnonimo` INTEGER NOT NULL, `hasLiked` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `remoteId` TEXT, `userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `userImageProfile` TEXT, `description` TEXT, `images` TEXT NOT NULL, `cantLikes` INTEGER NOT NULL, `cantComentarios` INTEGER NOT NULL, `comentarios` TEXT NOT NULL, `esAnonimo` INTEGER NOT NULL, `hasLiked` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -128,7 +128,7 @@
             "fieldPath": "comentarios",
             "columnName": "comentarios",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "esAnonimo",
@@ -555,7 +555,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9b49f4a2b5ac7a656af5645d2dcd7712')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bc021a98a5fb145f4027525fb13b3645')"
     ]
   }
 }

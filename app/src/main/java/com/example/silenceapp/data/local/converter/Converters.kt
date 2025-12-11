@@ -3,6 +3,7 @@ package com.example.silenceapp.data.local.converter
 import androidx.room.TypeConverter
 import com.example.silenceapp.data.local.entity.Comment
 import com.example.silenceapp.data.local.entity.UserEntity
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -25,7 +26,7 @@ class Converters {
         return gson.fromJson(userJson, type)
     }
 
-    // --- Para la lista 'comentarios' ---
+    // --- Para la lista 'comentarios' (Comment) ---
     @TypeConverter
     fun fromComments(comments: List<Comment>?): String? {
         return gson.toJson(comments)
@@ -36,6 +37,19 @@ class Converters {
         if (commentsJson == null) return emptyList()
         val type = object : TypeToken<List<Comment>>() {}.type
         return gson.fromJson(commentsJson, type)
+    }
+
+    // --- Para la lista 'comentarios' (ComentarioResponse) ---
+    @TypeConverter
+    fun fromComentariosResponse(comentarios: List<ComentarioResponse>?): String? {
+        return gson.toJson(comentarios)
+    }
+
+    @TypeConverter
+    fun toComentariosResponse(comentariosJson: String?): List<ComentarioResponse>? {
+        if (comentariosJson == null) return emptyList()
+        val type = object : TypeToken<List<ComentarioResponse>>() {}.type
+        return gson.fromJson(comentariosJson, type)
     }
 
     // --- Para la lista de strings (imágenes) ---

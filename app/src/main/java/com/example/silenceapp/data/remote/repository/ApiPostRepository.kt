@@ -5,7 +5,9 @@ import com.example.silenceapp.data.local.entity.Post
 import com.example.silenceapp.data.remote.client.ApiClient
 import com.example.silenceapp.data.mappers.toLocalPost
 import com.example.silenceapp.data.mappers.toLocalPostDetail
+import com.example.silenceapp.data.remote.dto.CommentRequest
 import com.example.silenceapp.data.remote.dto.PostRequest
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.example.silenceapp.data.remote.response.PostResponse
 import com.example.silenceapp.data.remote.service.PostService
 import com.example.silenceapp.data.remote.service.UserService
@@ -21,7 +23,10 @@ class ApiPostRepository (
         val response = api.getAllPosts()
         android.util.Log.d("ApiPostRepository", "📡 Raw API response: ${response.size} posts")
         response.forEach { postResponse ->
-            android.util.Log.d("ApiPostRepository", "   - Raw id: '${postResponse.id}', desc: ${postResponse.description?.take(20)}")
+            android.util.Log.d(
+                "ApiPostRepository",
+                "   - Raw id: '${postResponse.id}', desc: ${postResponse.description?.take(20)}"
+            )
         }
         return response
             .filter { it.id != null } // Filtrar posts sin ID
@@ -33,7 +38,7 @@ class ApiPostRepository (
         return response.toLocalPostDetail(currentUserId)
     }
 
-    suspend fun createPost(post : Post, currentUserId: String? = null): Post {
+    suspend fun createPost(post: Post, currentUserId: String? = null): Post {
         val token = store.getToken().first()
         val postRequest = PostRequest(
             description = post.description,
@@ -42,5 +47,19 @@ class ApiPostRepository (
         )
         val response = api.createPost("Bearer $token", post = postRequest)
         return response.toLocalPostDetail(currentUserId)
+    }
+
+    suspend fun addCommentToPost(
+        postId: String,
+        comment: String,
+    ): ComentarioResponse {
+        val token = store.getToken().first()
+        val commentRequest = CommentRequest(comentario = comment)
+
+        return api.addComment(
+            token = "Bearer $token",
+            postId = postId,
+            comment = commentRequest
+        )
     }
 }

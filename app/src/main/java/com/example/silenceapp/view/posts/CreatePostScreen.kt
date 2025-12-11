@@ -68,6 +68,7 @@ import com.example.silenceapp.viewmodel.FirebaseViewModel
 import com.example.silenceapp.data.remote.response.ProfileResponse
 import androidx.compose.ui.geometry.Size
 import com.example.silenceapp.ui.theme.DimGray
+import com.example.silenceapp.ui.theme.backgroundColor
 import com.example.silenceapp.ui.theme.lightGray
 import com.example.silenceapp.ui.theme.secondaryColor
 
@@ -175,7 +176,7 @@ fun CreatePostScreen(
             }
             Row(
                 modifier = Modifier
-                    .background(DimGray, shape = RoundedCornerShape(18.dp))
+                    .background(backgroundColor, shape = RoundedCornerShape(18.dp))
                     .clickable { esAnonimo = !esAnonimo }
                     .padding(horizontal = 8.dp, vertical = 0.dp),
                 verticalAlignment = Alignment.CenterVertically,

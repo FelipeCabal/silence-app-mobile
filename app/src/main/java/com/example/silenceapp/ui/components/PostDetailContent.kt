@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.silenceapp.data.local.entity.Comment
 import com.example.silenceapp.data.local.entity.Post
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.example.silenceapp.ui.theme.PaleMint
 import com.example.silenceapp.ui.theme.onBackgroundColor
 import com.example.silenceapp.ui.theme.secondaryColor
@@ -43,24 +44,12 @@ import com.google.gson.reflect.TypeToken
 @Composable
 fun PostDetailContent(
     post: Post,
+    comments: List<ComentarioResponse>,
     onLikeClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gson = Gson()
-
     // images ahora es List<String> directamente
     val images: List<String> = post.images
-
-    // Parseo comentarios (post.comentarios es JSON string o null)
-    val comentarios: List<Comment> = try {
-        if (!post.comentarios.isNullOrEmpty()) {
-            // Usamos TypeToken para evitar problemas si Comment tiene tipos complejos
-            val listType = object : TypeToken<List<Comment>>() {}.type
-            gson.fromJson<List<Comment>>(post.comentarios, listType)
-        } else emptyList()
-    } catch (e: Exception) {
-        emptyList()
-    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -145,10 +134,10 @@ fun PostDetailContent(
             Text("Comentarios", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (comentarios.isEmpty()) {
+            if (comments.isEmpty()) {
                 Text("Sé el primero en comentar", style = MaterialTheme.typography.bodySmall)
             } else {
-                comentarios.forEach { comment ->
+                comments.forEach { comment ->
                     CommentCard(comment = comment)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
