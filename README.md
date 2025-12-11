@@ -36,9 +36,16 @@ Una aplicación Android desarrollada con Jetpack Compose y Kotlin.
 
 ### Testing
 - **JUnit**: 4.13.2 - Framework de testing unitario
-- **AndroidX Test JUnit**: 1.3.0 - Testing para Android
-- **Espresso Core**: 3.7.0 - Testing de UI
-- **Compose UI Test**: Testing específico para Compose
+- **MockK**: 1.13.12 - Mocking en Kotlin
+- **Coroutines Test**: 1.8.1 - Testing de coroutines y Flows
+- **Turbine**: 1.1.0 - Testing de Flows reactivos
+- **Truth**: 1.4.4 - Assertions fluidas
+- **Room Testing**: 2.6.1 - Testing de base de datos
+- **Robolectric**: 4.13 - Tests unitarios con contexto Android
+- **Compose UI Test**: Testing de interfaces con Compose
+- **JaCoCo**: Cobertura de código
+
+📖 **Documentación completa**: Ver [TESTING.md](TESTING.md)
 
 ## 🚀 Configuración del Entorno de Desarrollo
 
@@ -154,16 +161,57 @@ org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
 ```
 SilenceApp/
 ├── app/
-│   ├── src/main/
-│   │   ├── java/           # Código fuente Kotlin
-│   │   ├── res/            # Recursos (layouts, strings, etc.)
-│   │   └── AndroidManifest.xml
-│   └── build.gradle.kts    # Configuración del módulo app
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/           # Código fuente Kotlin
+│   │   │   ├── res/            # Recursos (layouts, strings, etc.)
+│   │   │   └── AndroidManifest.xml
+│   │   ├── test/               # Tests unitarios
+│   │   └── androidTest/        # Tests instrumentados
+│   └── build.gradle.kts        # Configuración del módulo app
 ├── gradle/
-│   └── libs.versions.toml  # Catálogo de versiones de dependencias
-├── build.gradle.kts        # Configuración del proyecto raíz
+│   └── libs.versions.toml      # Catálogo de versiones de dependencias
+├── .github/
+│   └── workflows/
+│       └── android-ci.yml      # CI/CD con GitHub Actions
+├── build.gradle.kts            # Configuración del proyecto raíz
+├── TESTING.md                  # Documentación de testing
+├── run-tests.ps1               # Script para ejecutar tests
 └── README.md
 ```
+
+## 🧪 Testing
+
+El proyecto cuenta con una **suite completa de pruebas automatizadas**:
+
+### Ejecutar Tests
+
+```bash
+# Tests unitarios
+./gradlew test
+
+# Tests instrumentados (requiere emulador)
+./gradlew connectedAndroidTest
+
+# Reporte de cobertura
+./gradlew jacocoTestReport
+
+# Script interactivo (PowerShell)
+./run-tests.ps1
+```
+
+### Cobertura Actual
+- ✅ ViewModels: **100%**
+- ✅ Repositories: **100%**
+- ✅ DAOs: **90%+**
+- 🔄 UI: **60%+**
+
+### CI/CD
+[![Android CI](https://github.com/FelipeCabal/silence-app-mobile/actions/workflows/android-ci.yml/badge.svg)](https://github.com/FelipeCabal/silence-app-mobile/actions)
+
+Los tests se ejecutan automáticamente en cada push y pull request.
+
+📖 **Ver documentación completa**: [TESTING.md](TESTING.md)
 
 ## 🤝 Contribución
 

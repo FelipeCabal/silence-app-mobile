@@ -20,7 +20,7 @@ class AuthRepository(
     /**
      * Extrae el userId del payload del JWT
      */
-    private fun extractUserIdFromToken(token: String): String? {
+    internal fun extractUserIdFromToken(token: String): String? {
         return try {
             val parts = token.split(".")
             if (parts.size != 3) {
