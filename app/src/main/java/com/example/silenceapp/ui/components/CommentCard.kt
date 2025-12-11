@@ -21,12 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.example.silenceapp.data.local.entity.Comment
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.example.silenceapp.ui.theme.DarkGray
 import com.example.silenceapp.ui.theme.MintGreen
 
 @Composable
-fun CommentCard(comment: Comment) {
+fun CommentCard(comment: ComentarioResponse) {
     Row(
         modifier = Modifier
             .padding(20.dp, 14.dp)

@@ -19,4 +19,7 @@ interface PostDao {
     
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: Int)
+
+    @Query("SELECT * FROM posts WHERE id = :localId LIMIT 1")
+    suspend fun getPostByLocalId(localId: Int): Post?
 }

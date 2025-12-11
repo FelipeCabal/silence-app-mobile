@@ -20,8 +20,10 @@ import java.sql.Timestamp
 data class Comment(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val remoteId: String? = null,
-    val usuario: UserEntity,
+    val usuarioRemoteId: String,
+    val nombreUsuario: String,
+    val imagenUsuario: String?,
     val comentario: String,
     val postId: Int,
-    val CreatedAt: Timestamp? = null
+    val createdAt: String
 )

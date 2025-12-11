@@ -1,6 +1,8 @@
 package com.example.silenceapp.data.remote.service
 
+import com.example.silenceapp.data.remote.dto.CommentRequest
 import com.example.silenceapp.data.remote.dto.PostRequest
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.example.silenceapp.data.remote.response.PostDetailResponse
 import com.example.silenceapp.data.remote.response.PostResponse
 import retrofit2.http.Body
@@ -24,4 +26,11 @@ interface PostService {
         @Header("Authorization") token: String,
         @Body post: PostRequest
     ): PostDetailResponse
+
+    @POST("posts/comments/{postId}")
+    suspend fun addComment(
+        @Header("Authorization") token: String,
+        @Path("postId") postId: String,
+        @Body comment: CommentRequest
+    ): ComentarioResponse
 }
