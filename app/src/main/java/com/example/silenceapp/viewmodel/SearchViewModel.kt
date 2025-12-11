@@ -48,37 +48,53 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun loadInitialData() {
+        android.util.Log.d("SearchViewModel", "🔄 loadInitialData - INICIO")
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
-
+                
+                android.util.Log.d("SearchViewModel", "📞 Cargando solicitudes enviadas...")
                 loadSentRequests()
 
                 // Luego usuarios y comunidades
+                android.util.Log.d("SearchViewModel", "📞 Cargando usuarios...")
                 _users.value = repository.getUsers()
+                android.util.Log.d("SearchViewModel", "✅ Usuarios cargados: ${_users.value.size}")
+                
+                android.util.Log.d("SearchViewModel", "📞 Cargando comunidades...")
                 _communities.value = repository.getCommunities()
+                android.util.Log.d("SearchViewModel", "✅ Comunidades cargadas: ${_communities.value.size}")
 
             } catch (e: Exception) {
+                android.util.Log.e("SearchViewModel", "❌ Error en loadInitialData", e)
                 _error.value = e.message ?: "Unexpected error"
             } finally {
                 _isLoading.value = false
+                android.util.Log.d("SearchViewModel", "🔄 loadInitialData - FIN")
             }
         }
     }
 
     fun loadSentRequests() {
+        android.util.Log.d("SearchViewModel", "📬 loadSentRequests - INICIO")
         viewModelScope.launch {
             try {
+                android.util.Log.d("SearchViewModel", "📞 Obteniendo solicitudes de amistad...")
                 val requests = repository.getSentFriendsRequests()
                 _sentRequestsIds.value = requests.map { it.userRecibe._id }
+                android.util.Log.d("SearchViewModel", "✅ Solicitudes de amistad: ${_sentRequestsIds.value.size}")
 
-
+                android.util.Log.d("SearchViewModel", "📞 Obteniendo solicitudes de comunidades...")
                 val requestsc = repository.getSentCommunitiesRequests()
                 _sentRequestsCommunityIds.value = requestsc.data.map { it.id }
+                android.util.Log.d("SearchViewModel", "✅ Solicitudes de comunidades: ${_sentRequestsCommunityIds.value.size}")
 
             } catch (e: Exception) {
+                android.util.Log.e("SearchViewModel", "❌ Error en loadSentRequests", e)
                 e.printStackTrace()
+            } finally {
+                android.util.Log.d("SearchViewModel", "📬 loadSentRequests - FIN")
             }
         }
     }

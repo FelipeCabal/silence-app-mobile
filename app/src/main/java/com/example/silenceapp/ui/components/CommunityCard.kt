@@ -31,6 +31,11 @@ fun CommunityCard(
     onFollow: (Community) -> Unit,
     requestSent: Boolean = false
 ) {
+    android.util.Log.d("CommunityCard", "🏘️ Renderizando CommunityCard")
+    android.util.Log.d("CommunityCard", "   - id: ${community.id}")
+    android.util.Log.d("CommunityCard", "   - nombre: ${community.nombre}")
+    android.util.Log.d("CommunityCard", "   - imagen: ${community.imagen}")
+    android.util.Log.d("CommunityCard", "   - requestSent: $requestSent")
 
     var localRequestSent by remember { mutableStateOf(requestSent) }
 
@@ -96,7 +101,7 @@ fun CommunityCard(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = community.lastMessage,
+                    text = community.lastMessage ?: "Sin mensajes",
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall,
                 )

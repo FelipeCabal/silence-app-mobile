@@ -52,8 +52,14 @@ fun CommunityList(
     communities: List<Community>,
     onFollow: (Community) -> Unit
 ) {
+    android.util.Log.d("SearchScreen", "🏘️ CommunityList - Renderizando ${communities.size} comunidades")
+    communities.forEachIndexed { index, community ->
+        android.util.Log.d("SearchScreen", "   [$index] id=${community.id}, nombre=${community.nombre}")
+    }
+    
     LazyColumn {
         items(communities) { community ->
+            android.util.Log.d("SearchScreen", "🏘️ Renderizando CommunityCard para: ${community.id}")
             CommunityCard(
                 community = community,
                 onFollow = { onFollow(community) }
@@ -66,6 +72,8 @@ fun CommunityList(
 @Composable
 fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
 
+    android.util.Log.d("SearchScreen", "🔍 SearchScreen - Iniciando composición")
+    
     val users by viewModel.users.collectAsState()
     val communities by viewModel.communities.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -74,8 +82,17 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
     val sentCommunitiesRequestsIds by viewModel.sentRequestsCommunityIds.collectAsState()
     var query by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
+    
+    android.util.Log.d("SearchScreen", "📊 Estado actual:")
+    android.util.Log.d("SearchScreen", "   - selectedTab: $selectedTab")
+    android.util.Log.d("SearchScreen", "   - users: ${users.size}")
+    android.util.Log.d("SearchScreen", "   - communities: ${communities.size}")
+    android.util.Log.d("SearchScreen", "   - isLoading: $isLoading")
+    android.util.Log.d("SearchScreen", "   - error: $error")
 
-    LaunchedEffect(selectedTab) {
+    // Cargar datos solo al inicio, no cada vez que cambias de tab
+    LaunchedEffect(Unit) {
+        android.util.Log.d("SearchScreen", "🔄 LaunchedEffect - Cargando datos iniciales")
         viewModel.loadInitialData()
     }
 
@@ -98,7 +115,10 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
 
         SearchTabs(
             selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it }
+            onTabSelected = { 
+                android.util.Log.d("SearchScreen", "📑 Tab cambiado de $selectedTab a $it")
+                selectedTab = it 
+            }
         )
 
         Spacer(Modifier.height(12.dp))
@@ -121,10 +141,12 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
                 }
             }
             else -> {
+                android.util.Log.d("SearchScreen", "📋 Renderizando lista - Tab: $selectedTab")
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     if (selectedTab == 0) {
+                        android.util.Log.d("SearchScreen", "👥 Mostrando ${users.size} usuarios")
                         items(users) { user ->
                             val alreadySent = sentRequestsIds.contains(user.id)
                             PersonCard(
@@ -150,11 +172,14 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController) {
                             Spacer(Modifier.height(12.dp))
                         }
                     } else {
+                        android.util.Log.d("SearchScreen", "🏘️ Mostrando ${communities.size} comunidades")
                         items(communities) { community ->
+                            android.util.Log.d("SearchScreen", "🏘️ Item community: id=${community.id}, nombre=${community.nombre}")
                             val alreadySent = sentCommunitiesRequestsIds.contains(community.id)
                             CommunityCard(
                                 community = community,
                                 onFollow = {
+                                    android.util.Log.d("SearchScreen", "➕ onFollow comunidad: ${community.id}")
                                     if (!alreadySent) {
                                         viewModel.sendCommunityRequest(community.id)
                                     }

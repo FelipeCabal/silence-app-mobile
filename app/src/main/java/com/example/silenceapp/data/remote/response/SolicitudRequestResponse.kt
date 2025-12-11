@@ -16,8 +16,8 @@ data class Community(
     val id: String,
     val nombre: String,
     val imagen: String,
-    val lastMessage: String,
-    val lastMessageDate: String,
+    val lastMessage: String?,
+    val lastMessageDate: String?,
 )
 
 data class ResponseFriendRequestResponse(
