@@ -49,15 +49,6 @@ class ApiPostRepository (
         return response.toLocalPostDetail(currentUserId)
     }
 
-    suspend fun getPostDetailWithComments(
-        id: String,
-        currentUserId: String? = null
-    ): Pair<Post, List<ComentarioResponse>> {
-        val response = api.getPostById(id) // <- esto es PostDetailResponse
-        val post = response.toLocalPostDetail(currentUserId) // ya lo usas
-        return post to response.comentarios
-    }
-
     suspend fun addCommentToPost(
         postId: String,
         comment: String,

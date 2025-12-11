@@ -101,26 +101,38 @@ class PostViewModel(application: Application): AndroidViewModel(application){
                 val remotePosts = apiRepository.getAllPosts()
                 android.util.Log.d("PostViewModel", "📥 Posts de API: ${remotePosts.size}")
                 remotePosts.forEach { post ->
-                    android.util.Log.d("PostViewModel", "  - Post remoteId: ${post.remoteId}, desc: ${post.description?.take(30)}")
+                    android.util.Log.d("PostViewModel", "  - Post remoteId: ${post.remoteId}, cantComentarios: ${post.cantComentarios}")
                 }
 
-                val existinPosts = repository.getPosts()
-                val existingIds = existinPosts.map{it.remoteId}.toSet()
+                val existingPosts = repository.getPosts()
+                val existingPostsMap = existingPosts.associateBy { it.remoteId }
 
-                val newPosts = remotePosts.filter {it.remoteId !in existingIds}
+                // Separar posts nuevos y existentes
+                val newPosts = remotePosts.filter { it.remoteId !in existingPostsMap.keys }
+                val postsToUpdate = remotePosts.filter { it.remoteId in existingPostsMap.keys }
+
                 android.util.Log.d("PostViewModel", "🆕 Posts nuevos a guardar: ${newPosts.size}")
+                android.util.Log.d("PostViewModel", "🔄 Posts a actualizar: ${postsToUpdate.size}")
 
-                // Guardar en base de datos local
+                // Guardar posts nuevos
                 newPosts.forEach { post ->
                     repository.createPost(post)
                 }
 
-                // Actualizar UI con los posts locales
+                // Actualizar posts existentes
+                postsToUpdate.forEach { remotePost ->
+                    val localPost = existingPostsMap[remotePost.remoteId]
+                    if (localPost != null) {
+                        // Actualizar el post manteniendo el ID local
+                        val updatedPost = remotePost.copy(id = localPost.id)
+                        repository.updatePost(updatedPost)
+                        android.util.Log.d("PostViewModel", "✅ Actualizado post ${remotePost.remoteId}: cantComentarios=${remotePost.cantComentarios}")
+                    }
+                }
+
+                // Obtener posts actualizados de la BD local
                 val updatedPosts = repository.getPosts()
                 android.util.Log.d("PostViewModel", "💾 Posts en BD local: ${updatedPosts.size}")
-                updatedPosts.forEach { post ->
-                    android.util.Log.d("PostViewModel", "  - Post id=${post.id}, remoteId: ${post.remoteId}, desc: ${post.description?.take(30)}")
-                }
 
                 withContext(Dispatchers.Main) {
                     _uiState.value = _uiState.value.copy(
@@ -155,7 +167,7 @@ class PostViewModel(application: Application): AndroidViewModel(application){
                 }
 
                 try {
-                    val (post, comments) = apiRepository.getPostDetailWithComments(
+                    val post = apiRepository.getPostById(
                         id = remoteId,
                         currentUserId = userId
                     )
@@ -163,7 +175,7 @@ class PostViewModel(application: Application): AndroidViewModel(application){
                     _postDetailState.value = PostDetailUiState(
                         isLoading = false,
                         post = post,
-                        comments = comments
+                        comments = post.comentarios
                     )
                 } catch (e: Exception){
                     _postDetailState.value = PostDetailUiState(
@@ -354,29 +366,46 @@ class PostViewModel(application: Application): AndroidViewModel(application){
             )
 
             try {
-                val newComment = withContext(Dispatchers.IO){
+                // Enviar el comentario
+                withContext(Dispatchers.IO){
                     apiRepository.addCommentToPost(
                         postRemoteId,
                         text
                     )
                 }
 
-                val current = _postDetailState.value
-                val currentPost = current.post
+                // Recargar el post completo con los comentarios actualizados
+                val userId = withContext(Dispatchers.IO) {
+                    try {
+                        authRepository.getProfile().id
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
 
-                if(currentPost != null){
-                    _postDetailState.value = current.copy(
-                        isSendingComment = false,
-                        comments = current.comments + newComment,
-                        post = currentPost.copy(
-                            cantComentarios = currentPost.cantComentarios + 1
-                        )
-                    )
-                } else {
-                 _postDetailState.value = current.copy(
-                     isSendingComment = false
+                val updatedPost = withContext(Dispatchers.IO) {
+                    apiRepository.getPostById(
+                        id = postRemoteId,
+                        currentUserId = userId
                     )
                 }
+
+                _postDetailState.value = _postDetailState.value.copy(
+                    isSendingComment = false,
+                    post = updatedPost,
+                    comments = updatedPost.comentarios,
+                    commentError = null
+                )
+
+                // Actualizar también el post en la lista del home
+                withContext(Dispatchers.IO) {
+                    repository.updatePost(updatedPost)
+                }
+                val updatedPosts = _uiState.value.posts.map { post ->
+                    if (post.remoteId == postRemoteId) updatedPost else post
+                }
+                _uiState.value = _uiState.value.copy(posts = updatedPosts)
+
             }catch (e: Exception){
                 _postDetailState.value = _postDetailState.value.copy(
                     isSendingComment = false,

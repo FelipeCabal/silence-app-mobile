@@ -2,6 +2,7 @@ package com.example.silenceapp.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.silenceapp.data.remote.response.ComentarioResponse
 
 @Entity(tableName = "posts")
 data class Post(
@@ -14,7 +15,7 @@ data class Post(
     val images: List<String>,
     val cantLikes: Int = 0,
     val cantComentarios: Int = 0,
-    val comentarios: String? = null,
+    val comentarios: List<ComentarioResponse> = emptyList(),
     val esAnonimo: Boolean = false,
     val hasLiked: Boolean = false,  // Indica si el usuario actual dio like
     val createdAt: Long = System.currentTimeMillis()  // Timestamp en millis

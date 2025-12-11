@@ -105,7 +105,7 @@ fun PostScreenSimple(
                                 post = post,
                                 onClick = onPostClick,
                                 onLikeClick = { remoteId ->
-                                   // viewModel.toggleLike(remoteId)
+                                    viewModel.toggleLike(remoteId)
                                 },
                                 onProfileClick = { userId ->
                                     navController.navigate("profile/$userId")

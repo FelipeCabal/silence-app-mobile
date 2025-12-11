@@ -23,7 +23,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.silenceapp.data.remote.response.ComentarioResponse
 import com.example.silenceapp.ui.theme.DarkGray
+import com.example.silenceapp.ui.theme.DarkGreen
 import com.example.silenceapp.ui.theme.MintGreen
+import com.example.silenceapp.ui.theme.postBackgroundColor
 
 @Composable
 fun CommentCard(comment: ComentarioResponse) {
@@ -45,7 +47,7 @@ fun CommentCard(comment: ComentarioResponse) {
                 painter = rememberAsyncImagePainter(userImage),
                 contentDescription = "Foto de perfil de ${comment.usuario.nombre}",
                 modifier = Modifier
-                    .height(50.dp)
+                    .height(45.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Fit
             )
@@ -56,22 +58,22 @@ fun CommentCard(comment: ComentarioResponse) {
         Column(
             modifier = Modifier
                 .background(
-                    color = MintGreen,
-                    shape = RoundedCornerShape(14.dp),
+                    color = postBackgroundColor,
+                    shape = RoundedCornerShape(12.dp),
 
                     )
                 .padding(12.dp),
         ) {
             Text(
-                text = comment.usuario.nombre,
+                text = '@' + comment.usuario.nombre,
                 style = MaterialTheme.typography.bodyMedium,
-                color = DarkGray
+                color = DarkGreen
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = comment.comentario,
                 color = DarkGray,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
